@@ -10,6 +10,8 @@
       {
         "group": "Getting Started",
         "pages": [
+          "getting-started/untitled-page-1",
+          "getting-started/accounts",
           "getting-started/untitled-page"
         ]
       }
