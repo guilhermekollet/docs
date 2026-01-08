@@ -1,4 +1,282 @@
 ---
-title: 'Smartlinks'
+title: "Smartlinks API"
+description: "A API Smartlinks permite gerenciar campanhas de links inteligentes, validar links de grupos do WhatsApp e acessar relatórios de atividades (cliques e entradas)."
 ---
 
+## Autenticação
+
+A maioria dos endpoints requer autenticação.
+
+Header: Authorization: Bearer seu_token_jwt Header Alternativo (para consumo de créditos): x-api-token: seu_api_token
+
+## Endpoints
+
+<AccordionGroup>
+  <Accordion title="Validar Link do WhatsApp" icon="check-circle">
+    Valida um link de convite de grupo ou canal do WhatsApp, verificando metadados como og:image.
+
+    Método: POST URL: /smartlinks/validate
+
+    <ParamField body="url" type="string" required>
+      URL completa (ex: https://chat.whatsapp.com/Code) ou apenas o código.
+    </ParamField>
+    <RequestExample>
+
+    ```json
+    
+    {
+    
+    "url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh"
+    
+    }
+    
+    ```
+
+    </RequestExample>
+
+    <ResponseExample>
+
+    ```json
+    
+    {
+    
+    "is_valid": true,
+    
+    "validated_at": "2025-12-15T10:30:00.000Z",
+    
+    "url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh"
+    
+    }
+    
+    ```
+
+    </ResponseExample>
+
+    <ResponseField name="is_valid" type="boolean">
+      Indica se o link é válido.
+    </ResponseField>
+    <ResponseField name="validated_at" type="string">
+      Data e hora da validação (ISO 8601).
+    </ResponseField>
+    <ResponseField name="url" type="string">
+      URL validada.
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Obter Link da Campanha (Short Code)" icon="search">
+    ```
+    Método: GET
+    
+    URL: /smartlinks
+    ```
+
+    <ParamField query="shortCode" type="string" required>
+      O código curto da campanha (ex: ABC123).
+    </ParamField>
+    <RequestExample>
+
+    ```json
+    
+    GET /smartlinks?shortCode=ABC123
+    
+    Authorization: Bearer <token>
+    
+    ```
+
+    </RequestExample>
+
+    <Note>
+      Retorna o objeto do link da campanha encontrado.
+    </Note>
+  </Accordion>
+  <Accordion title="Atualizar Detalhes da Campanha" icon="edit">
+    Atualiza as informações do grupo do WhatsApp associado a uma campanha principal. Útil para rotacionar grupos ou atualizar contadores.
+
+    Método: PUT URL: /smartlinks/shortCodeCampaign/details
+
+    <ParamField path="shortCodeCampaign" type="string" required>
+      Código curto identificador da campanha.
+    </ParamField>
+    <ParamField body="group_id" type="string" required>
+      ID único do grupo do WhatsApp.
+    </ParamField>
+    <ParamField body="invite_code" type="string" required>
+      Código de convite do grupo.
+    </ParamField>
+    <ParamField body="group_name" type="string" required>
+      Nome do grupo do WhatsApp.
+    </ParamField>
+    <RequestExample>
+
+    ```json
+    
+    {
+    
+    "group_id": "cc2be923-9984-4089-9dbd-9206ece0b847",
+    
+    "invite_code": "FJsMdw8ozjv7TkYhD6hhWz",
+    
+    "group_name": "Promoção Relâmpago #01"
+    
+    }
+    
+    ```
+
+    </RequestExample>
+
+    <Note>
+      Retorna o objeto CampaignDetailsResponseDto atualizado.
+    </Note>
+  </Accordion>
+  <Accordion title="Listar Atividades da Campanha" icon="list">
+    Retorna o histórico de atividades (cliques e entradas) de uma campanha específica, com suporte a filtros e paginação.
+
+    Método: GET URL: /smartlinks/campaign/campaignId/activities
+
+    <ParamField path="campaignId" type="string" required>
+      ID da campanha (UUID ou short code).
+    </ParamField>
+    <ParamField query="page" default="1" type="number">
+      Número da página.
+    </ParamField>
+    <ParamField query="limit" default="100" type="number">
+      Itens por página (máx. 500).
+    </ParamField>
+    <ParamField query="type" type="string">
+      Filtrar por tipo: click ou entry.
+    </ParamField>
+    <ParamField query="startDate" type="string">
+      Data inicial (YYYY-MM-DD).
+    </ParamField>
+    <ParamField query="endDate" type="string">
+      Data final (YYYY-MM-DD).
+    </ParamField>
+    <RequestExample>
+
+    ```bash
+    
+    GET /smartlinks/campaign/3M8NZ5/activities?type=click&page=1&limit=50
+    
+    Authorization: Bearer <token>
+    
+    ```
+
+    </RequestExample>
+
+    <ResponseExample>
+
+    ```json
+    
+    {
+    
+    "data": [
+    
+    {
+    
+    "id": "e5bf7f72-9183-43fd-a8bd-a89b6e35b11f",
+    
+    "occurred_at": "2026-01-07T10:34:35.56791+00:00",
+    
+    "activity_type": "click",
+    
+    "device_type": "mobile",
+    
+    "browser_name": "Chrome",
+    
+    "os_name": "Android",
+    
+    "ip_address": "192.168.1.1",
+    
+    "user_agent": "Mozilla/5.0...",
+    
+    "target_group_name": "Promoção #01",
+    
+    "total_count": 904
+    
+    }
+    
+    ],
+    
+    "meta": {
+    
+    "page": 1,
+    
+    "limit": 50,
+    
+    "total": 904,
+    
+    "totalPages": 19,
+    
+    "hasNextPage": true,
+    
+    "hasPreviousPage": false
+    
+    }
+    
+    }
+    
+    ```
+
+    </ResponseExample>
+
+    <ResponseField name="data" type="array">
+      Lista de atividades.
+
+      <Expandable title="Detalhes da Atividade">
+        <ResponseField name="id" type="string">
+          ID da atividade.
+        </ResponseField>
+        <ResponseField name="occurred_at" type="string">
+          Data e hora da ocorrência.
+        </ResponseField>
+        <ResponseField name="activity_type" type="string">
+          Tipo de atividade (click ou entry).
+        </ResponseField>
+        <ResponseField name="device_type" type="string">
+          Tipo de dispositivo.
+        </ResponseField>
+        <ResponseField name="browser_name" type="string">
+          Nome do navegador.
+        </ResponseField>
+        <ResponseField name="os_name" type="string">
+          Nome do sistema operacional.
+        </ResponseField>
+        <ResponseField name="ip_address" type="string">
+          Endereço IP.
+        </ResponseField>
+        <ResponseField name="user_agent" type="string">
+          User agent.
+        </ResponseField>
+        <ResponseField name="target_group_name" type="string">
+          Nome do grupo alvo.
+        </ResponseField>
+        <ResponseField name="total_count" type="number">
+          Contagem total (para agregações).
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="meta" type="object">
+      Metadados de paginação.
+
+      <Expandable title="Detalhes da Meta">
+        <ResponseField name="page" type="number">
+          Página atual.
+        </ResponseField>
+        <ResponseField name="limit" type="number">
+          Limite por página.
+        </ResponseField>
+        <ResponseField name="total" type="number">
+          Total de itens.
+        </ResponseField>
+        <ResponseField name="totalPages" type="number">
+          Total de páginas.
+        </ResponseField>
+        <ResponseField name="hasNextPage" type="boolean">
+          Indica se há próxima página.
+        </ResponseField>
+        <ResponseField name="hasPreviousPage" type="boolean">
+          Indica se há página anterior.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
