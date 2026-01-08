@@ -10,7 +10,16 @@
       {
         "group": "Getting Started",
         "pages": [
-          "getting-started/untitled-page"
+          "getting-started/subscription",
+          "getting-started/smartlinks",
+          "getting-started/monitors",
+          "getting-started/incidents",
+          "getting-started/groups",
+          "getting-started/credits",
+          "getting-started/common",
+          "getting-started/campaings",
+          "getting-started/untitled-page-1",
+          "getting-started/accounts"
         ]
       }
     ]
