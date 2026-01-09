@@ -1,0 +1,435 @@
+---
+title: 'Assinaturas'
+description: 'Gerencie planos, pagamentos e assinaturas da sua conta'
+---
+
+## Visão Geral
+
+A API de Assinaturas permite gerenciar informações de planos, acessar portal de pagamentos e consultar status de assinatura.
+
+<CardGroup cols={2}>
+  <Card
+    title="Status da Assinatura"
+    icon="circle-check"
+    href="/api-reference/subscriptions/status"
+  >
+    Consulte informações do plano atual
+  </Card>
+  <Card
+    title="Criar Checkout"
+    icon="cart-shopping"
+    href="/api-reference/subscriptions/checkout"
+  >
+    Gere sessão de checkout para upgrade
+  </Card>
+  <Card
+    title="Portal de Pagamento"
+    icon="credit-card"
+    href="/api-reference/subscriptions/portal"
+  >
+    Acesse portal de gerenciamento
+  </Card>
+</CardGroup>
+
+## Planos Disponíveis
+
+### Free
+**Ideal para testes e projetos pequenos**
+
+- ✅ 1.000 créditos/mês
+- ✅ 3 contas de anúncios
+- ✅ 10 campanhas ativas
+- ✅ 1.000 requisições/dia
+- ✅ Suporte via email
+- ✅ Retenção de dados: 30 dias
+
+**Preço**: Grátis
+
+### Pro
+**Para negócios em crescimento**
+
+- ✅ 10.000 créditos/mês
+- ✅ 10 contas de anúncios
+- ✅ 100 campanhas ativas
+- ✅ 10.000 requisições/dia
+- ✅ Suporte prioritário
+- ✅ Retenção de dados: 90 dias
+- ✅ Webhooks ilimitados
+- ✅ Análises avançadas
+
+**Preço**: R$ 99/mês ou R$ 990/ano (2 meses grátis)
+
+### Enterprise
+**Para grandes operações**
+
+- ✅ Créditos ilimitados
+- ✅ Contas de anúncios ilimitadas
+- ✅ Campanhas ilimitadas
+- ✅ 100.000 requisições/dia
+- ✅ Suporte dedicado 24/7
+- ✅ Retenção de dados: 365 dias
+- ✅ SLA de 99.9% uptime
+- ✅ Onboarding personalizado
+- ✅ IP dedicado (opcional)
+
+**Preço**: Sob consulta
+
+## Casos de Uso
+
+### Verificar Status da Assinatura
+
+```javascript
+async function getSubscriptionStatus() {
+  const response = await fetch(
+    'https://api.monitoragrupo.com/v1/subscriptions/status',
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  );
+  
+  const data = await response.json();
+  
+  return {
+    plan: data.plan_name,
+    status: data.status,
+    creditsRemaining: data.credits_remaining,
+    renewsAt: new Date(data.renews_at),
+    daysUntilRenewal: Math.ceil(
+      (new Date(data.renews_at) - new Date()) / (1000 * 60 * 60 * 24)
+    )
+  };
+}
+
+// Uso
+const subscription = await getSubscriptionStatus();
+console.log(`📦 Plano: ${subscription.plan}`);
+console.log(`💳 Status: ${subscription.status}`);
+console.log(`🪙 Créditos: ${subscription.creditsRemaining.toLocaleString()}`);
+console.log(`📅 Renova em: ${subscription.daysUntilRenewal} dias`);
+```
+
+### Fluxo de Upgrade
+
+```javascript
+class SubscriptionManager {
+  constructor(authToken) {
+    this.token = authToken;
+    this.baseUrl = 'https://api.monitoragrupo.com/v1';
+  }
+  
+  async createUpgradeFlow(targetPlan) {
+    // 1. Verificar plano atual
+    const current = await this.getCurrentPlan();
+    
+    if (current.plan === targetPlan) {
+      throw new Error('Você já está neste plano');
+    }
+    
+    // 2. Criar sessão de checkout
+    const checkout = await fetch(`${this.baseUrl}/subscriptions/checkout`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        plan: targetPlan,
+        billing_cycle: 'monthly',
+        success_url: 'https://app.example.com/upgrade/success',
+        cancel_url: 'https://app.example.com/upgrade/cancel'
+      })
+    }).then(r => r.json());
+    
+    // 3. Redirecionar usuário
+    return {
+      checkoutUrl: checkout.url,
+      sessionId: checkout.session_id,
+      expiresAt: checkout.expires_at
+    };
+  }
+  
+  async getCurrentPlan() {
+    const response = await fetch(`${this.baseUrl}/subscriptions/status`, {
+      headers: { 'Authorization': `Bearer ${this.token}` }
+    });
+    return await response.json();
+  }
+  
+  async cancelSubscription(reason) {
+    const response = await fetch(`${this.baseUrl}/subscriptions/cancel`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        reason,
+        feedback: 'optional feedback text',
+        cancel_at_period_end: true // Manter até fim do período pago
+      })
+    });
+    
+    return await response.json();
+  }
+}
+
+// Uso
+const manager = new SubscriptionManager('YOUR_TOKEN');
+
+// Fazer upgrade
+const upgrade = await manager.createUpgradeFlow('pro');
+window.location.href = upgrade.checkoutUrl;
+
+// Ou cancelar
+const cancellation = await manager.cancelSubscription('switching_providers');
+console.log(`Cancelamento agendado para: ${cancellation.cancel_at}`);
+```
+
+### Portal de Autoatendimento
+
+```python
+import requests
+
+class BillingPortal:
+    def __init__(self, auth_token):
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def get_portal_url(self, return_url='https://app.example.com/settings'):
+        """Gera URL para portal de gerenciamento de assinatura"""
+        response = requests.post(
+            f'{self.base_url}/subscriptions/portal',
+            headers=self.headers,
+            json={'return_url': return_url}
+        )
+        
+        data = response.json()
+        return data['url']
+    
+    def get_billing_history(self, limit=12):
+        """Retorna histórico de cobranças"""
+        response = requests.get(
+            f'{self.base_url}/subscriptions/invoices?limit={limit}',
+            headers=self.headers
+        )
+        
+        invoices = response.json()['invoices']
+        
+        return [{
+            'date': invoice['created_at'],
+            'amount': invoice['amount_paid'],
+            'status': invoice['status'],
+            'pdf_url': invoice['invoice_pdf']
+        } for invoice in invoices]
+    
+    def update_payment_method(self):
+        """Redireciona para atualização de método de pagamento"""
+        portal_url = self.get_portal_url()
+        
+        # No portal, usuário pode:
+        # - Atualizar cartão de crédito
+        # - Ver histórico de cobranças
+        # - Baixar notas fiscais
+        # - Cancelar assinatura
+        
+        return portal_url
+    
+    def get_usage_report(self):
+        """Relatório de uso do período atual"""
+        response = requests.get(
+            f'{self.base_url}/subscriptions/usage',
+            headers=self.headers
+        )
+        
+        data = response.json()
+        
+        return {
+            'period_start': data['period_start'],
+            'period_end': data['period_end'],
+            'credits_used': data['credits_used'],
+            'credits_limit': data['credits_limit'],
+            'api_requests': data['api_requests'],
+            'overage_credits': max(0, data['credits_used'] - data['credits_limit']),
+            'estimated_overage_charge': max(0, data['credits_used'] - data['credits_limit']) * 0.01
+        }
+
+# Uso
+portal = BillingPortal('YOUR_TOKEN')
+
+# Acessar portal
+portal_url = portal.get_portal_url()
+print(f"🔗 Portal: {portal_url}")
+
+# Ver cobranças
+history = portal.get_billing_history(6)
+for invoice in history:
+    print(f"{invoice['date']}: R$ {invoice['amount']} - {invoice['status']}")
+
+# Relatório de uso
+usage = portal.get_usage_report()
+print(f"\n💰 Uso do período:")
+print(f"   Créditos: {usage['credits_used']:,} / {usage['credits_limit']:,}")
+print(f"   Requisições: {usage['api_requests']:,}")
+
+if usage['overage_credits'] > 0:
+    print(f"   ⚠️ Overage: {usage['overage_credits']:,} créditos (R$ {usage['estimated_overage_charge']:.2f})")
+```
+
+### Webhooks de Assinatura
+
+Configure webhooks para receber eventos de cobrança:
+
+```javascript
+// Eventos possíveis:
+const events = {
+  'subscription.created': 'Nova assinatura criada',
+  'subscription.updated': 'Plano alterado',
+  'subscription.canceled': 'Assinatura cancelada',
+  'subscription.renewed': 'Renovação bem-sucedida',
+  'payment.succeeded': 'Pagamento aprovado',
+  'payment.failed': 'Pagamento falhou',
+  'invoice.created': 'Nova fatura gerada',
+  'invoice.paid': 'Fatura paga',
+  'trial.ending': 'Trial acabando em 3 dias'
+};
+
+// Exemplo de payload
+const webhookPayload = {
+  event: 'payment.succeeded',
+  data: {
+    subscription_id: 'sub_abc123',
+    plan: 'pro',
+    amount: 99.00,
+    currency: 'BRL',
+    paid_at: '2026-01-09T14:30:00Z',
+    invoice_url: 'https://billing.example.com/invoice/inv_xyz',
+    next_billing_date: '2026-02-09'
+  },
+  timestamp: '2026-01-09T14:30:05Z'
+};
+```
+
+## Ciclo de Faturamento
+
+### Mensal
+- Cobrança todo dia do mês da assinatura
+- Créditos renovam automaticamente
+- Pode cancelar a qualquer momento
+- Sem multa de cancelamento
+
+### Anual
+- Cobrança única com desconto
+- Economia de 20% (2 meses grátis)
+- Créditos mensais por 12 meses
+- Reembolso proporcional se cancelar (primeiros 30 dias)
+
+## Políticas
+
+### Upgrade
+- ✅ Efeito imediato
+- ✅ Crédito proporcional do plano anterior
+- ✅ Créditos adicionais disponíveis instantaneamente
+- ✅ Sem cobrança dupla
+
+### Downgrade
+- ⏳ Efeito no próximo ciclo de cobrança
+- ⚠️ Créditos não utilizados expiram
+- 📧 Notificação 7 dias antes
+
+### Cancelamento
+- Acesso mantido até fim do período pago
+- Dados preservados por 90 dias
+- Exportação de dados disponível
+- Pode reativar a qualquer momento
+
+## Gerenciamento de Créditos
+
+### Créditos Extras
+
+```json
+{
+  "purchase_credits": {
+    "quantity": 5000,
+    "price_per_credit": 0.01,
+    "total": 50.00,
+    "validity": "90_days"
+  }
+}
+```
+
+### Pacotes de Créditos
+
+| Quantidade | Preço Unit. | Total | Economia |
+|------------|-------------|-------|----------|
+| 1.000 | R$ 0,015 | R$ 15 | - |
+| 5.000 | R$ 0,012 | R$ 60 | 20% |
+| 10.000 | R$ 0,010 | R$ 100 | 33% |
+| 50.000 | R$ 0,008 | R$ 400 | 47% |
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Posso mudar de plano a qualquer momento?">
+    Sim! Upgrades são imediatos. Downgrades entram em vigor no próximo ciclo de cobrança.
+  </Accordion>
+  
+  <Accordion title="O que acontece se eu exceder o limite de créditos?">
+    Planos Free: Serviços pausam até próximo ciclo. Planos pagos: Cobrança de overage (R$ 0,01/crédito).
+  </Accordion>
+  
+  <Accordion title="Posso usar créditos de um mês no outro?">
+    Não. Créditos mensais expiram ao final de cada ciclo. Apenas créditos extras comprados têm validade de 90 dias.
+  </Accordion>
+  
+  <Accordion title="Vocês oferecem período de teste?">
+    Sim! Plano Pro tem 14 dias grátis. Nenhum cartão necessário para começar.
+  </Accordion>
+  
+  <Accordion title="Como funciona o reembolso?">
+    Garantia de 30 dias para planos anuais. Reembolso proporcional calculado por dia não utilizado.
+  </Accordion>
+</AccordionGroup>
+
+## Segurança de Pagamentos
+
+<Note>
+  Todos os pagamentos são processados via **Stripe**, com certificação PCI DSS Level 1. Não armazenamos dados de cartão de crédito.
+</Note>
+
+**Métodos aceitos:**
+- 💳 Cartão de crédito (Visa, Mastercard, Amex)
+- 💳 Cartão de débito
+- 🏦 Boleto bancário (apenas Brasil)
+- 💰 Pix (apenas Brasil)
+- 🌐 PayPal (internacional)
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="Accounts"
+    icon="user"
+    href="/api-reference/accounts/overview"
+  >
+    Gerencie informações da conta
+  </Card>
+  <Card
+    title="Credits"
+    icon="coins"
+    href="/api-reference/credits/overview"
+  >
+    Monitore consumo de créditos
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="webhook"
+    href="/webhooks/overview"
+  >
+    Receba eventos de cobrança
+  </Card>
+  <Card
+    title="Dashboard"
+    icon="chart-line"
+    href="https://dashboard.monitoragrupo.com"
+  >
+    Acesse o painel de controle
+  </Card>
+</CardGroup>

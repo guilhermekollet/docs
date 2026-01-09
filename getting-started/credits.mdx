@@ -1,4 +1,257 @@
 ---
-title: 'Credits'
+title: "Credits API"
+description: "A API Credits permite consultar saldo de créditos, histórico de consumo e realizar operações de recarga/compra (quando habilitado) para uso do Monitora API."
 ---
 
+## Autenticação
+
+A maioria dos endpoints requer autenticação.
+
+Header (JWT):
+
+```
+Authorization: Bearer <seu_token_jwt>
+```
+
+Header alternativo (para consumo de créditos em integrações server-to-server):
+
+```
+x-api-token: <seu_api_token>
+```
+
+---
+
+## Endpoints
+
+<AccordionGroup>
+
+  <Accordion title="Obter Saldo de Créditos" icon="wallet">
+    Retorna o saldo atual de créditos do usuário/conta.
+
+    **Método:** GET
+    **URL:** `/credits/balance`
+
+    <RequestExample>
+    ```bash
+    GET /credits/balance
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "balance": 2500,
+      "currency": "credits",
+      "updatedAt": "2026-01-10T12:00:00.000Z"
+    }
+    ```
+    </ResponseExample>
+
+    <ResponseField name="balance" type="number">
+      Quantidade de créditos disponíveis.
+    </ResponseField>
+    <ResponseField name="currency" type="string">
+      Unidade (normalmente "credits").
+    </ResponseField>
+    <ResponseField name="updatedAt" type="string">
+      Data/hora da última atualização do saldo (ISO 8601).
+    </ResponseField>
+
+  </Accordion>
+
+  <Accordion title="Listar Movimentações (Extrato)" icon="list">
+    Lista movimentações de créditos (consumo e recargas), com paginação e filtros.
+
+    **Método:** GET
+    **URL:** `/credits/transactions`
+
+    <ParamField query="page" type="number" default="1">
+      Número da página.
+    </ParamField>
+
+    <ParamField query="limit" type="number" default="20">
+      Itens por página.
+    </ParamField>
+
+    <ParamField query="type" type="string">
+      Filtrar por tipo: debit (consumo) ou credit (recarga).
+    </ParamField>
+
+    <ParamField query="startDate" type="string">
+      Data inicial (YYYY-MM-DD).
+    </ParamField>
+
+    <ParamField query="endDate" type="string">
+      Data final (YYYY-MM-DD).
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /credits/transactions?page=1&limit=20&type=debit&startDate=2026-01-01&endDate=2026-01-31
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "data": [
+        {
+          "id": "uuid",
+          "type": "debit",
+          "amount": 25,
+          "reason": "smartlinks.validate",
+          "referenceId": "req_123",
+          "occurredAt": "2026-01-07T10:34:35.567Z",
+          "balanceAfter": 2475
+        },
+        {
+          "id": "uuid",
+          "type": "credit",
+          "amount": 5000,
+          "reason": "purchase",
+          "referenceId": "order_456",
+          "occurredAt": "2026-01-05T12:10:00.000Z",
+          "balanceAfter": 5000
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "limit": 20,
+        "total": 2,
+        "totalPages": 1,
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
+    }
+    ```
+    </ResponseExample>
+
+    <ResponseField name="data" type="array">
+      Lista de movimentações.
+
+      <Expandable title="Detalhes da Movimentação">
+        <ResponseField name="id" type="string">
+          ID da movimentação.
+        </ResponseField>
+        <ResponseField name="type" type="string">
+          Tipo (debit/credit).
+        </ResponseField>
+        <ResponseField name="amount" type="number">
+          Quantidade movimentada.
+        </ResponseField>
+        <ResponseField name="reason" type="string">
+          Motivo/categoria (ex.: endpoint ou purchase).
+        </ResponseField>
+        <ResponseField name="referenceId" type="string">
+          ID de referência (requisição/pedido/evento).
+        </ResponseField>
+        <ResponseField name="occurredAt" type="string">
+          Data/hora da movimentação.
+        </ResponseField>
+        <ResponseField name="balanceAfter" type="number">
+          Saldo após a movimentação.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="meta" type="object">
+      Metadados de paginação.
+    </ResponseField>
+
+  </Accordion>
+
+  <Accordion title="Pré-visualizar Consumo de Créditos" icon="calculator">
+    Retorna uma estimativa de consumo de créditos para uma operação (quando disponível).
+
+    **Método:** POST
+    **URL:** `/credits/estimate`
+
+    <ParamField body="operation" type="string" required>
+      Nome da operação (ex.: smartlinks.validate, monitors.groups).
+    </ParamField>
+
+    <ParamField body="quantity" type="number" default="1">
+      Quantidade de execuções.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "operation": "smartlinks.validate",
+      "quantity": 10
+    }
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "operation": "smartlinks.validate",
+      "unitCost": 1,
+      "quantity": 10,
+      "totalCost": 10
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Criar Recarga/Compra de Créditos" icon="shopping-cart">
+    Cria uma solicitação de compra/recarga de créditos (se o módulo de billing estiver habilitado).
+
+    **Método:** POST
+    **URL:** `/credits/purchase`
+
+    <ParamField body="packageId" type="string" required>
+      ID do pacote/plano de créditos.
+    </ParamField>
+
+    <ParamField body="paymentMethod" type="string" required>
+      Método de pagamento (ex.: pix, card, boleto).
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "packageId": "pack_5000",
+      "paymentMethod": "pix"
+    }
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "orderId": "order_456",
+      "status": "pending",
+      "amount": 5000,
+      "payment": {
+        "method": "pix",
+        "qrCode": "base64-or-text",
+        "expiresAt": "2026-01-10T13:00:00.000Z"
+      }
+    }
+    ```
+    </ResponseExample>
+
+    <Note>
+      Se sua implementação não tiver billing, este endpoint pode não existir.
+    </Note>
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Erros comuns
+
+- **401 Unauthorized**: token ausente/expirado/inválido.
+- **403 Forbidden**: usuário sem permissão.
+- **404 Not Found**: recurso não encontrado (ex.: packageId inexistente).
+- **422 Unprocessable Entity**: validação de payload.
+- **429 Too Many Requests**: limite de requisições (se habilitado).

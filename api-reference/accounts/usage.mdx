@@ -1,0 +1,87 @@
+---
+title: "Consultar Uso de Contas"
+api: "GET /accounts/usage"
+description: "Retorna informações sobre uso e limite de contas do plano do usuário."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint permite verificar quantas contas do Facebook o usuário já cadastrou e qual é o limite do seu plano atual.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="current_usage" type="number">
+  Quantidade de contas atualmente cadastradas.
+</ResponseField>
+
+<ResponseField name="plan_limit" type="number">
+  Limite de contas permitido pelo plano.
+</ResponseField>
+
+<ResponseField name="remaining" type="number">
+  Quantidade de contas disponíveis para cadastro.
+</ResponseField>
+
+<ResponseField name="plan_name" type="string">
+  Nome do plano atual.
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.monitora.com/accounts/usage \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.monitora.com/accounts/usage', {
+  headers: {
+    'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+  }
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/accounts/usage"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "current_usage": 3,
+  "plan_limit": 10,
+  "remaining": 7,
+  "plan_name": "Professional"
+}
+```
+
+</ResponseExample>
+
+<Info>
+  Use este endpoint antes de cadastrar novas contas para verificar se há slots disponíveis.
+</Info>

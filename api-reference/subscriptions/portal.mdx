@@ -1,0 +1,196 @@
+---
+title: "Portal do Cliente"
+api: "POST /subscriptions/portal"
+description: "Cria uma sessão do Portal de Clientes do Stripe para gerenciar assinatura."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint cria uma sessão do Portal de Clientes do Stripe, permitindo que o usuário gerencie sua assinatura, métodos de pagamento, visualize faturas e muito mais.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="url" type="string">
+  URL do Portal de Clientes para redirecionar o usuário.
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitora.com/subscriptions/portal \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.monitora.com/subscriptions/portal',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+
+// Redirecionar para o portal
+window.location.href = data.url;
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/subscriptions/portal"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.post(url, headers=headers)
+result = response.json()
+
+# URL para redirecionar o usuário
+portal_url = result['url']
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "url": "https://billing.stripe.com/p/session/test_YWNjdF8xTjI..."
+}
+```
+
+</ResponseExample>
+
+## Funcionalidades do Portal
+
+<AccordionGroup>
+  <Accordion title="Gerenciar Assinatura" icon="credit-card">
+    - Fazer upgrade ou downgrade do plano
+    - Alterar ciclo de cobrança (mensal/anual)
+    - Cancelar assinatura
+  </Accordion>
+
+  <Accordion title="Métodos de Pagamento" icon="wallet">
+    - Adicionar novos cartões
+    - Atualizar cartão padrão
+    - Remover métodos antigos
+  </Accordion>
+
+  <Accordion title="Histórico de Faturas" icon="file-invoice">
+    - Visualizar faturas anteriores
+    - Baixar comprovantes em PDF
+    - Ver próximas cobranças
+  </Accordion>
+
+  <Accordion title="Informações de Cobrança" icon="building">
+    - Atualizar endereço de cobrança
+    - Editar informações da empresa
+    - Configurar email para faturas
+  </Accordion>
+</AccordionGroup>
+
+## Fluxo de Uso
+
+<Steps>
+  <Step title="Criar Sessão do Portal">
+    Chame este endpoint para obter a URL do portal.
+  </Step>
+  
+  <Step title="Redirecionar Usuário">
+    Redirecione o usuário para a URL retornada.
+  </Step>
+  
+  <Step title="Usuário Gerencia Assinatura">
+    O usuário realiza as alterações desejadas no portal do Stripe.
+  </Step>
+  
+  <Step title="Webhooks Sincronizam">
+    Alterações são sincronizadas via webhooks do Stripe.
+  </Step>
+  
+  <Step title="Retorno à Aplicação">
+    Usuário é redirecionado de volta à aplicação.
+  </Step>
+</Steps>
+
+## Exemplo de Implementação Frontend
+
+```javascript
+// Componente React para botão de gerenciar assinatura
+async function handleManageSubscription() {
+  try {
+    const response = await fetch('/api/subscriptions/portal', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    const { url } = await response.json();
+    
+    // Redirecionar para o portal
+    window.location.href = url;
+  } catch (error) {
+    console.error('Erro ao abrir portal:', error);
+    alert('Não foi possível abrir o portal. Tente novamente.');
+  }
+}
+
+// Uso
+<button onClick={handleManageSubscription}>
+  Gerenciar Minha Assinatura
+</button>
+```
+
+## Casos de Uso
+
+<Card title="Autoatendimento" icon="user">
+  Reduza tickets de suporte permitindo que usuários gerenciem suas próprias assinaturas.
+</Card>
+
+<Card title="Transparência" icon="eye">
+  Dê aos usuários controle total sobre pagamentos e faturas.
+</Card>
+
+<Card title="Retenção" icon="heart">
+  Facilite upgrades e evite cancelamentos por fricção no processo.
+</Card>
+
+## Notas Importantes
+
+<Info>
+  O Portal de Clientes é totalmente gerenciado pelo Stripe. Você pode personalizá-lo no dashboard do Stripe em Configurações > Portal de Clientes.
+</Info>
+
+<Tip>
+  Configure as opções do portal (quais ações permitir) no dashboard do Stripe para controlar o que os usuários podem fazer.
+</Tip>
+
+<Warning>
+  O usuário precisa ter uma assinatura ativa ou histórico de assinatura para acessar o portal. Usuários sem Customer ID no Stripe receberão erro.
+</Warning>
+
+## Personalização do Portal
+
+No dashboard do Stripe, você pode configurar:
+
+- **Funcionalidades permitidas:** Cancelamento, upgrade, atualização de pagamento
+- **Branding:** Logo, cores, mensagens customizadas
+- **URLs de retorno:** Para onde redirecionar após ações no portal
+- **Business information:** Informações de contato e suporte

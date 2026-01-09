@@ -1,0 +1,240 @@
+---
+title: 'SmartLinks'
+description: 'Crie e gerencie links inteligentes com rastreamento avançado'
+---
+
+## Visão Geral
+
+A API SmartLinks permite criar links inteligentes com rastreamento completo de cliques e entradas, validação de grupos do WhatsApp e relatórios detalhados de atividades.
+
+<CardGroup cols={2}>
+  <Card
+    title="Validação de Links"
+    icon="check-circle"
+    href="/api-reference/smartlinks/validate"
+  >
+    Valide links de grupos do WhatsApp
+  </Card>
+  <Card
+    title="Gerenciar Campanhas"
+    icon="megaphone"
+    href="/api-reference/smartlinks/get-campaign"
+  >
+    Obtenha e atualize campanhas
+  </Card>
+  <Card
+    title="Atualizar Detalhes"
+    icon="pen-to-square"
+    href="/api-reference/smartlinks/update-details"
+  >
+    Atualize informações de grupos
+  </Card>
+  <Card
+    title="Relatórios"
+    icon="chart-line"
+    href="/api-reference/smartlinks/activities"
+  >
+    Analise cliques e entradas
+  </Card>
+</CardGroup>
+
+## Casos de Uso
+
+<AccordionGroup>
+  <Accordion icon="users" title="Gerenciamento de Grupos WhatsApp">
+    Crie campanhas de links inteligentes para grupos do WhatsApp com rotação automática quando atingem capacidade máxima.
+  </Accordion>
+
+  <Accordion icon="chart-mixed" title="Rastreamento de Marketing">
+    Monitore cliques, conversões e entradas em grupos para medir efetividade de campanhas.
+  </Accordion>
+
+  <Accordion icon="rotate" title="Rotação Automática">
+    Configure múltiplos grupos para uma campanha e rotacione automaticamente quando necessário.
+  </Accordion>
+
+  <Accordion icon="shield-check" title="Validação em Tempo Real">
+    Valide links do WhatsApp antes de adicioná-los às campanhas para garantir que estão ativos.
+  </Accordion>
+</AccordionGroup>
+
+## Recursos Principais
+
+### Validação de Links
+
+Verifique se um link de convite do WhatsApp está ativo e válido antes de usá-lo em campanhas.
+
+### Rastreamento Avançado
+
+Capture informações detalhadas sobre cada clique:
+- Dispositivo (mobile, desktop, tablet)
+- Sistema operacional
+- Navegador
+- Localização (IP)
+- Data e hora
+- User agent completo
+
+### Paginação Inteligente
+
+Todos os endpoints de listagem suportam paginação com metadados completos:
+- Total de itens
+- Total de páginas
+- Indicadores de próxima/anterior
+- Controle de limite por página
+
+### Filtros Avançados
+
+Filtre atividades por:
+- Tipo (click, entry)
+- Período (startDate, endDate)
+- Paginação customizada
+
+## Autenticação
+
+<Note>
+  Todos os endpoints SmartLinks requerem autenticação via Bearer token ou API token.
+</Note>
+
+**Métodos suportados:**
+
+1. **Bearer Token** (JWT)
+```bash
+Authorization: Bearer seu_token_jwt
+```
+
+2. **API Token** (para consumo de créditos)
+```bash
+x-api-token: seu_api_token
+```
+
+## Estrutura de Resposta Padrão
+
+### Sucesso
+
+```json
+{
+  "data": {...},
+  "meta": {
+    "page": 1,
+    "limit": 100,
+    "total": 523,
+    "totalPages": 6,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+### Erro
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "URL inválida",
+    "status": 400,
+    "details": {
+      "field": "url",
+      "reason": "invalid_whatsapp_link"
+    }
+  }
+}
+```
+
+## Fluxo de Trabalho Típico
+
+<Steps>
+  <Step title="Validar link do WhatsApp">
+    Use o endpoint de validação para verificar se o link está ativo
+  </Step>
+
+  <Step title="Criar campanha">
+    Configure uma campanha com o link validado
+  </Step>
+
+  <Step title="Compartilhar SmartLink">
+    Use o código curto gerado para compartilhar
+  </Step>
+
+  <Step title="Monitorar atividades">
+    Acompanhe cliques e entradas em tempo real
+  </Step>
+
+  <Step title="Atualizar quando necessário">
+    Rotacione grupos quando atingir capacidade máxima
+  </Step>
+</Steps>
+
+## Exemplos Práticos
+
+### Criar e Validar Link
+
+```javascript
+// 1. Validar link do WhatsApp
+const validation = await fetch('https://api.example.com/v1/smartlinks/validate', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    url: 'https://chat.whatsapp.com/ABC123XYZ'
+  })
+});
+
+const { is_valid } = await validation.json();
+
+if (is_valid) {
+  console.log('✅ Link válido! Pode criar a campanha.');
+}
+```
+
+### Monitorar Cliques
+
+```python
+import requests
+
+# Obter atividades da campanha
+response = requests.get(
+    'https://api.example.com/v1/smartlinks/campaign/ABC123/activities',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'},
+    params={
+        'type': 'click',
+        'page': 1,
+        'limit': 50
+    }
+)
+
+data = response.json()
+print(f"Total de cliques: {data['meta']['total']}")
+```
+
+## Limites e Quotas
+
+- **Rate Limit**: 100 requisições por minuto
+- **Paginação máxima**: 500 itens por página
+- **Retenção de dados**: 90 dias de histórico
+- **Validações**: 1000 validações por dia (plano free)
+
+<Tip>
+  Para aumentar limites, entre em contato com nossa equipe de vendas.
+</Tip>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card
+    title="Validar Link"
+    icon="check"
+    href="/api-reference/smartlinks/validate"
+  >
+    Comece validando um link do WhatsApp
+  </Card>
+  <Card
+    title="Ver Exemplos"
+    icon="code"
+    href="/guides/code-examples"
+  >
+    Explore exemplos completos de código
+  </Card>
+</CardGroup>

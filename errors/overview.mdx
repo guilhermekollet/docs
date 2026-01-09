@@ -1,0 +1,451 @@
+---
+title: 'Códigos de Erro'
+description: 'Referência completa de códigos de erro e como resolvê-los'
+---
+
+## Visão Geral
+
+A API usa códigos de status HTTP padrão para indicar sucesso ou falha de requisições. Todos os erros incluem um corpo JSON com detalhes adicionais.
+
+## Estrutura de Erro
+
+Todos os erros seguem este formato:
+
+```json
+{
+  "error": {
+    "code": "error_code",
+    "message": "Descrição legível do erro",
+    "status": 400,
+    "details": {
+      "field": "campo_com_erro",
+      "reason": "motivo_específico"
+    },
+    "request_id": "req_1234567890"
+  }
+}
+```
+
+<ParamField path="error.code" type="string" required>
+  Código único identificando o tipo de erro
+</ParamField>
+
+<ParamField path="error.message" type="string" required>
+  Mensagem descritiva do erro em linguagem humana
+</ParamField>
+
+<ParamField path="error.status" type="integer" required>
+  Código de status HTTP do erro
+</ParamField>
+
+<ParamField path="error.details" type="object">
+  Informações adicionais sobre o erro (opcional)
+</ParamField>
+
+<ParamField path="error.request_id" type="string">
+  ID único da requisição para rastreamento e suporte
+</ParamField>
+
+## Códigos de Status HTTP
+
+### 2xx - Sucesso
+
+<AccordionGroup>
+  <Accordion icon="check" title="200 OK">
+    Requisição bem-sucedida. O corpo da resposta contém os dados solicitados.
+    
+    ```json
+    {
+      "id": "acc_123",
+      "name": "Conta Exemplo",
+      "status": "active"
+    }
+    ```
+  </Accordion>
+
+  <Accordion icon="plus" title="201 Created">
+    Recurso criado com sucesso. O header `Location` contém a URL do novo recurso.
+    
+    ```json
+    {
+      "id": "acc_456",
+      "name": "Nova Conta",
+      "created_at": "2026-01-09T10:30:00Z"
+    }
+    ```
+  </Accordion>
+
+  <Accordion icon="trash" title="204 No Content">
+    Requisição bem-sucedida sem corpo de resposta (comum em DELETE).
+  </Accordion>
+</AccordionGroup>
+
+### 4xx - Erros do Cliente
+
+<AccordionGroup>
+  <Accordion icon="exclamation-triangle" title="400 Bad Request">
+    A requisição é inválida ou malformada.
+    
+    **Causas comuns:**
+    - JSON inválido no corpo da requisição
+    - Parâmetros obrigatórios faltando
+    - Valores de parâmetros inválidos
+    
+    ```json
+    {
+      "error": {
+        "code": "invalid_request",
+        "message": "O campo 'email' é obrigatório",
+        "status": 400,
+        "details": {
+          "field": "email",
+          "reason": "missing_required_field"
+        }
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Verifique a documentação do endpoint
+    - Valide o formato JSON
+    - Confirme todos os campos obrigatórios
+  </Accordion>
+
+  <Accordion icon="lock" title="401 Unauthorized">
+    Falha na autenticação - credenciais ausentes ou inválidas.
+    
+    ```json
+    {
+      "error": {
+        "code": "unauthorized",
+        "message": "Chave de API inválida ou ausente",
+        "status": 401
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Verifique se o header `Authorization` está presente
+    - Confirme que a chave de API está correta
+    - Verifique se a chave não foi revogada
+    - Use o formato: `Bearer YOUR_API_KEY`
+  </Accordion>
+
+  <Accordion icon="ban" title="403 Forbidden">
+    Você não tem permissão para acessar este recurso.
+    
+    ```json
+    {
+      "error": {
+        "code": "forbidden",
+        "message": "Permissão insuficiente para esta operação",
+        "status": 403,
+        "details": {
+          "required_scope": "write",
+          "current_scope": "read"
+        }
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Verifique os escopos da sua chave de API
+    - Confirme as permissões da conta
+    - Gere uma nova chave com permissões adequadas
+  </Accordion>
+
+  <Accordion icon="magnifying-glass" title="404 Not Found">
+    O recurso solicitado não existe.
+    
+    ```json
+    {
+      "error": {
+        "code": "not_found",
+        "message": "Conta não encontrada",
+        "status": 404,
+        "details": {
+          "resource": "account",
+          "id": "acc_999"
+        }
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Verifique se o ID do recurso está correto
+    - Confirme que o recurso não foi deletado
+    - Verifique o endpoint da requisição
+  </Accordion>
+
+  <Accordion icon="ban" title="409 Conflict">
+    Conflito com o estado atual do recurso.
+    
+    ```json
+    {
+      "error": {
+        "code": "conflict",
+        "message": "Uma conta com este email já existe",
+        "status": 409,
+        "details": {
+          "field": "email",
+          "value": "user@example.com"
+        }
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Verifique valores únicos (email, username, etc.)
+    - Use PUT/PATCH para atualizar recursos existentes
+    - Implemente lógica de "upsert" se apropriado
+  </Accordion>
+
+  <Accordion icon="input-numeric" title="422 Unprocessable Entity">
+    A requisição está bem formada mas contém erros semânticos.
+    
+    ```json
+    {
+      "error": {
+        "code": "validation_error",
+        "message": "Falha na validação de dados",
+        "status": 422,
+        "details": {
+          "errors": [
+            {
+              "field": "email",
+              "message": "Formato de email inválido"
+            },
+            {
+              "field": "age",
+              "message": "Deve ser maior que 0"
+            }
+          ]
+        }
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Valide dados antes de enviar
+    - Corrija os campos indicados em `details.errors`
+    - Consulte as regras de validação na documentação
+  </Accordion>
+
+  <Accordion icon="gauge-high" title="429 Too Many Requests">
+    Limite de taxa excedido.
+    
+    ```json
+    {
+      "error": {
+        "code": "rate_limit_exceeded",
+        "message": "Limite de taxa excedido. Tente novamente em 3600 segundos",
+        "status": 429,
+        "retry_after": 3600
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Implemente backoff exponencial
+    - Respeite o header `Retry-After`
+    - Use cache para reduzir requisições
+    - Considere upgrade do plano
+    - Veja: [Limites de Taxa](/guides/rate-limits)
+  </Accordion>
+</AccordionGroup>
+
+### 5xx - Erros do Servidor
+
+<AccordionGroup>
+  <Accordion icon="server" title="500 Internal Server Error">
+    Erro inesperado no servidor.
+    
+    ```json
+    {
+      "error": {
+        "code": "internal_error",
+        "message": "Ocorreu um erro interno no servidor",
+        "status": 500,
+        "request_id": "req_1234567890"
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Tente novamente após alguns segundos
+    - Se persistir, entre em contato com suporte
+    - Inclua o `request_id` ao reportar
+  </Accordion>
+
+  <Accordion icon="wrench" title="503 Service Unavailable">
+    Serviço temporariamente indisponível (manutenção).
+    
+    ```json
+    {
+      "error": {
+        "code": "service_unavailable",
+        "message": "API em manutenção. Tente novamente em breve",
+        "status": 503,
+        "retry_after": 1800
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Aguarde e tente novamente
+    - Respeite o header `Retry-After`
+    - Verifique [status page](https://status.example.com)
+  </Accordion>
+
+  <Accordion icon="clock" title="504 Gateway Timeout">
+    O servidor não respondeu a tempo.
+    
+    ```json
+    {
+      "error": {
+        "code": "gateway_timeout",
+        "message": "A requisição excedeu o tempo limite",
+        "status": 504
+      }
+    }
+    ```
+    
+    **Solução:**
+    - Tente novamente
+    - Reduza a complexidade da requisição
+    - Use paginação para grandes datasets
+  </Accordion>
+</AccordionGroup>
+
+## Códigos de Erro Comuns
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `invalid_request` | 400 | Requisição malformada ou inválida |
+| `unauthorized` | 401 | Credenciais ausentes ou inválidas |
+| `forbidden` | 403 | Permissão insuficiente |
+| `not_found` | 404 | Recurso não encontrado |
+| `conflict` | 409 | Conflito com estado atual |
+| `validation_error` | 422 | Erro de validação de dados |
+| `rate_limit_exceeded` | 429 | Limite de taxa excedido |
+| `internal_error` | 500 | Erro interno do servidor |
+| `service_unavailable` | 503 | Serviço indisponível |
+
+## Tratamento de Erros
+
+### Exemplo de Implementação
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function handleApiRequest(endpoint, options) {
+    try {
+      const response = await fetch(`${baseURL}${endpoint}`, options);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        
+        switch (error.error.status) {
+          case 401:
+            // Renovar autenticação
+            await refreshAuth();
+            return handleApiRequest(endpoint, options); // Retry
+          
+          case 429:
+            // Aguardar rate limit
+            const retryAfter = error.error.retry_after || 60;
+            await sleep(retryAfter * 1000);
+            return handleApiRequest(endpoint, options); // Retry
+          
+          case 500:
+          case 503:
+            // Retry com backoff
+            await sleep(5000);
+            return handleApiRequest(endpoint, options);
+          
+          default:
+            throw new Error(`API Error: ${error.error.message}`);
+        }
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Request failed:', error);
+      throw error;
+    }
+  }
+  ```
+
+  ```python Python
+  import requests
+  import time
+
+  def handle_api_request(endpoint, headers, max_retries=3):
+      for attempt in range(max_retries):
+          try:
+              response = requests.get(
+                  f'{base_url}{endpoint}',
+                  headers=headers
+              )
+              
+              if response.status_code == 401:
+                  # Renovar autenticação
+                  refresh_auth()
+                  continue
+              
+              elif response.status_code == 429:
+                  # Aguardar rate limit
+                  error = response.json()
+                  retry_after = error['error'].get('retry_after', 60)
+                  time.sleep(retry_after)
+                  continue
+              
+              elif response.status_code in [500, 503]:
+                  # Retry com backoff
+                  time.sleep(5 * (attempt + 1))
+                  continue
+              
+              response.raise_for_status()
+              return response.json()
+              
+          except requests.exceptions.RequestException as e:
+              if attempt == max_retries - 1:
+                  raise e
+      
+      return None
+  ```
+</CodeGroup>
+
+## Debug e Suporte
+
+### Request ID
+
+Sempre salve o `request_id` quando reportar erros:
+
+```javascript
+try {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('Request ID:', error.error.request_id);
+    // Salvar para suporte
+  }
+} catch (error) {
+  console.error('Failed to parse error response');
+}
+```
+
+### Entre em Contato
+
+Se você encontrar erros persistentes:
+
+<Card
+  title="Suporte Técnico"
+  icon="headset"
+  href="mailto:support@example.com"
+>
+  Inclua o `request_id` e detalhes da requisição ao entrar em contato
+</Card>
+
+<Tip>
+  Para verificar status dos serviços em tempo real, visite [status.example.com](https://status.example.com)
+</Tip>

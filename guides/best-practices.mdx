@@ -1,0 +1,361 @@
+---
+title: 'Melhores Práticas'
+description: 'Guia de melhores práticas para usar a API de forma eficiente e segura'
+---
+
+## Autenticação e Segurança
+
+<AccordionGroup>
+  <Accordion icon="key" title="Proteja suas credenciais">
+    - **Nunca** exponha chaves de API em código client-side ou repositórios públicos
+    - Use variáveis de ambiente ou gerenciadores de segredos
+    - Rotacione chaves regularmente (recomendamos a cada 90 dias)
+    - Mantenha chaves diferentes para desenvolvimento, staging e produção
+    
+    <CodeGroup>
+      ```javascript .env
+      # .env (nunca commitar este arquivo!)
+      API_KEY=sk_live_1234567890abcdef
+      API_URL=https://api.example.com/v1
+      ```
+
+      ```javascript Node.js
+      require('dotenv').config();
+      
+      const apiKey = process.env.API_KEY;
+      const apiUrl = process.env.API_URL;
+      ```
+
+      ```python Python
+      import os
+      from dotenv import load_dotenv
+
+      load_dotenv()
+
+      api_key = os.getenv('API_KEY')
+      api_url = os.getenv('API_URL')
+      ```
+    </CodeGroup>
+  </Accordion>
+
+  <Accordion icon="shield-halved" title="Use HTTPS sempre">
+    Todas as requisições devem usar HTTPS em produção para proteger dados em trânsito.
+    
+    <Warning>
+      A API rejeita requisições HTTP em produção. Use sempre `https://` no URL base.
+    </Warning>
+  </Accordion>
+
+  <Accordion icon="minimize" title="Princípio do privilégio mínimo">
+    Conceda apenas as permissões necessárias para cada chave de API:
+    - Use escopos limitados quando possível
+    - Crie chaves diferentes para diferentes funcionalidades
+    - Revogue chaves não utilizadas
+  </Accordion>
+</AccordionGroup>
+
+## Performance e Otimização
+
+### Rate Limiting
+
+<Note>
+  Respeite os limites de taxa para evitar bloqueios temporários e garantir um serviço estável para todos.
+</Note>
+
+**Limites padrão:**
+- **1000 requisições por hora** para chaves gratuitas
+- **10000 requisições por hora** para planos pagos
+- **100 requisições por minuto** para todos os planos
+
+**Verifique os headers de resposta:**
+```http
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 847
+X-RateLimit-Reset: 1641024000
+```
+
+**Implemente backoff exponencial:**
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function requestWithRetry(url, options, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await fetch(url, options);
+        
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After') || Math.pow(2, i);
+          await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+          continue;
+        }
+        
+        return response;
+      } catch (error) {
+        if (i === maxRetries - 1) throw error;
+      }
+    }
+  }
+  ```
+
+  ```python Python
+  import time
+  import requests
+
+  def request_with_retry(url, headers, max_retries=3):
+      for i in range(max_retries):
+          try:
+              response = requests.get(url, headers=headers)
+              
+              if response.status_code == 429:
+                  retry_after = int(response.headers.get('Retry-After', 2 ** i))
+                  time.sleep(retry_after)
+                  continue
+              
+              response.raise_for_status()
+              return response
+          except requests.exceptions.RequestException as e:
+              if i == max_retries - 1:
+                  raise e
+  ```
+</CodeGroup>
+
+### Paginação
+
+Para grandes conjuntos de dados, use paginação:
+
+```javascript
+async function getAllAccounts() {
+  let allAccounts = [];
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await fetch(
+      `${baseURL}/accounts?page=${page}&limit=100`,
+      { headers }
+    );
+    const data = await response.json();
+    
+    allAccounts = [...allAccounts, ...data.results];
+    hasMore = data.has_more;
+    page++;
+  }
+
+  return allAccounts;
+}
+```
+
+### Cache de Respostas
+
+Implemente cache para reduzir requisições desnecessárias:
+
+<CodeGroup>
+  ```javascript Node.js
+  const NodeCache = require('node-cache');
+  const cache = new NodeCache({ stdTTL: 600 }); // 10 minutos
+
+  async function getCachedAccount(accountId) {
+    const cacheKey = `account_${accountId}`;
+    
+    // Verifica cache
+    let account = cache.get(cacheKey);
+    if (account) return account;
+    
+    // Busca da API
+    const response = await fetch(`${baseURL}/accounts/${accountId}`, { headers });
+    account = await response.json();
+    
+    // Armazena em cache
+    cache.set(cacheKey, account);
+    return account;
+  }
+  ```
+
+  ```python Python
+  from functools import lru_cache
+  import requests
+
+  @lru_cache(maxsize=128)
+  def get_cached_account(account_id):
+      response = requests.get(
+          f'{base_url}/accounts/{account_id}',
+          headers=headers
+      )
+      return response.json()
+  ```
+</CodeGroup>
+
+## Tratamento de Erros
+
+### Implemente tratamento robusto
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function safeApiCall(endpoint) {
+    try {
+      const response = await fetch(`${baseURL}${endpoint}`, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`API Error: ${error.message} (${response.status})`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Request failed:', error);
+      
+      // Log para monitoramento
+      logError(error);
+      
+      // Retorna valor padrão ou relança erro
+      throw error;
+    }
+  }
+  ```
+
+  ```python Python
+  def safe_api_call(endpoint):
+      try:
+          response = requests.get(
+              f'{base_url}{endpoint}',
+              headers=headers,
+              timeout=10
+          )
+          response.raise_for_status()
+          return response.json()
+      
+      except requests.exceptions.Timeout:
+          print('Request timeout')
+          # Implementar retry ou fallback
+      
+      except requests.exceptions.HTTPError as e:
+          print(f'HTTP error: {e}')
+          # Tratar erro específico
+      
+      except requests.exceptions.RequestException as e:
+          print(f'Request failed: {e}')
+          # Log e tratamento genérico
+  ```
+</CodeGroup>
+
+### Valide dados de entrada
+
+```javascript
+function validateAccountData(data) {
+  const errors = [];
+
+  if (!data.name || data.name.length < 3) {
+    errors.push('Nome deve ter pelo menos 3 caracteres');
+  }
+
+  if (!data.email || !isValidEmail(data.email)) {
+    errors.push('Email inválido');
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Validação falhou: ${errors.join(', ')}`);
+  }
+
+  return true;
+}
+```
+
+## Monitoramento e Logging
+
+### Log de requisições
+
+<CodeGroup>
+  ```javascript JavaScript
+  const logger = require('winston');
+
+  async function loggedRequest(endpoint, options) {
+    const startTime = Date.now();
+    
+    logger.info('API Request', {
+      endpoint,
+      method: options.method || 'GET',
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      const response = await fetch(`${baseURL}${endpoint}`, options);
+      const duration = Date.now() - startTime;
+      
+      logger.info('API Response', {
+        endpoint,
+        status: response.status,
+        duration: `${duration}ms`
+      });
+
+      return response;
+    } catch (error) {
+      logger.error('API Error', {
+        endpoint,
+        error: error.message,
+        duration: `${Date.now() - startTime}ms`
+      });
+      throw error;
+    }
+  }
+  ```
+</CodeGroup>
+
+### Monitore métricas
+
+Track important metrics:
+- Taxa de sucesso/erro
+- Tempo de resposta médio
+- Uso de rate limit
+- Endpoints mais utilizados
+
+## Versionamento
+
+<Tip>
+  Sempre especifique a versão da API no URL para garantir compatibilidade.
+</Tip>
+
+```javascript
+// ✅ Bom - versão explícita
+const baseURL = 'https://api.example.com/v1';
+
+// ❌ Evite - sem versão
+const baseURL = 'https://api.example.com';
+```
+
+## Idempotência
+
+Use chaves de idempotência para operações críticas:
+
+```javascript
+const idempotencyKey = `${userId}_${Date.now()}_${Math.random()}`;
+
+await fetch(`${baseURL}/payments`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Idempotency-Key': idempotencyKey,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(paymentData)
+});
+```
+
+## Resumo de Checklist
+
+<Check>Use HTTPS para todas as requisições</Check>
+<Check>Armazene credenciais em variáveis de ambiente</Check>
+<Check>Implemente retry com backoff exponencial</Check>
+<Check>Respeite limites de taxa</Check>
+<Check>Use paginação para grandes datasets</Check>
+<Check>Implemente cache quando apropriado</Check>
+<Check>Trate erros de forma robusta</Check>
+<Check>Valide dados antes de enviar</Check>
+<Check>Faça log de requisições importantes</Check>
+<Check>Monitore métricas e performance</Check>
+<Check>Especifique versão da API</Check>
+<Check>Use chaves de idempotência para operações críticas</Check>

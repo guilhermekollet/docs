@@ -1,0 +1,367 @@
+---
+title: 'Limites de Taxa'
+description: 'Entenda os limites de requisições e como gerenciá-los'
+---
+
+## Visão Geral
+
+Para garantir a estabilidade e disponibilidade da API para todos os usuários, implementamos limites de taxa (rate limits) que restringem o número de requisições que você pode fazer em um período de tempo.
+
+## Limites por Plano
+
+<CardGroup cols={3}>
+  <Card title="Gratuito" icon="gift">
+    **1.000** requisições/hora
+    
+    **100** requisições/minuto
+  </Card>
+  <Card title="Pro" icon="star">
+    **10.000** requisições/hora
+    
+    **200** requisições/minuto
+  </Card>
+  <Card title="Enterprise" icon="building">
+    **100.000** requisições/hora
+    
+    **1.000** requisições/minuto
+  </Card>
+</CardGroup>
+
+<Note>
+  Os limites são aplicados por chave de API. Se você precisar de limites maiores, [entre em contato](mailto:sales@example.com) com nossa equipe de vendas.
+</Note>
+
+## Headers de Rate Limit
+
+Cada resposta da API inclui headers que informam sobre seu uso atual:
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 847
+X-RateLimit-Reset: 1641024000
+Retry-After: 3600
+```
+
+<ParamField header="X-RateLimit-Limit" type="integer">
+  Número máximo de requisições permitidas no período atual
+</ParamField>
+
+<ParamField header="X-RateLimit-Remaining" type="integer">
+  Número de requisições restantes no período atual
+</ParamField>
+
+<ParamField header="X-RateLimit-Reset" type="timestamp">
+  Timestamp Unix quando o limite será resetado
+</ParamField>
+
+<ParamField header="Retry-After" type="integer">
+  Segundos até que você possa fazer outra requisição (apenas em erros 429)
+</ParamField>
+
+## Monitorando Limites
+
+### Verificar limites programaticamente
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function checkRateLimit(response) {
+    const limit = response.headers.get('X-RateLimit-Limit');
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    const reset = response.headers.get('X-RateLimit-Reset');
+    
+    console.log(`Limite: ${limit}`);
+    console.log(`Restantes: ${remaining}`);
+    console.log(`Reset em: ${new Date(reset * 1000).toLocaleString()}`);
+    
+    // Alerta se estiver próximo do limite
+    if (remaining < limit * 0.1) {
+      console.warn('⚠️ Atenção: Próximo do limite de taxa!');
+    }
+  }
+
+  const response = await fetch(url, options);
+  checkRateLimit(response);
+  ```
+
+  ```python Python
+  def check_rate_limit(response):
+      limit = int(response.headers.get('X-RateLimit-Limit', 0))
+      remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
+      reset = int(response.headers.get('X-RateLimit-Reset', 0))
+      
+      print(f'Limite: {limit}')
+      print(f'Restantes: {remaining}')
+      print(f'Reset em: {datetime.fromtimestamp(reset)}')
+      
+      # Alerta se estiver próximo do limite
+      if remaining < limit * 0.1:
+          print('⚠️ Atenção: Próximo do limite de taxa!')
+  
+  response = requests.get(url, headers=headers)
+  check_rate_limit(response)
+  ```
+
+  ```php PHP
+  function checkRateLimit($response) {
+      $limit = $response->getHeader('X-RateLimit-Limit')[0];
+      $remaining = $response->getHeader('X-RateLimit-Remaining')[0];
+      $reset = $response->getHeader('X-RateLimit-Reset')[0];
+      
+      echo "Limite: $limit\n";
+      echo "Restantes: $remaining\n";
+      echo "Reset em: " . date('Y-m-d H:i:s', $reset) . "\n";
+      
+      if ($remaining < $limit * 0.1) {
+          echo "⚠️ Atenção: Próximo do limite de taxa!\n";
+      }
+  }
+  ```
+</CodeGroup>
+
+## Tratando Erros 429
+
+Quando você excede o limite, a API retorna um erro `429 Too Many Requests`:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Please retry after 3600 seconds.",
+    "status": 429,
+    "retry_after": 3600
+  }
+}
+```
+
+### Implementar Retry com Backoff
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function requestWithBackoff(url, options, maxRetries = 3) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, options);
+        
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After') || Math.pow(2, attempt);
+          console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
+          
+          await new Promise(resolve => 
+            setTimeout(resolve, retryAfter * 1000)
+          );
+          continue;
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response;
+      } catch (error) {
+        if (attempt === maxRetries - 1) {
+          throw error;
+        }
+        
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.log(`Attempt ${attempt + 1} failed. Retrying in ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+
+  // Uso
+  const response = await requestWithBackoff(
+    'https://api.example.com/v1/accounts',
+    {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      }
+    }
+  );
+  ```
+
+  ```python Python
+  import time
+  import requests
+  from requests.exceptions import RequestException
+
+  def request_with_backoff(url, headers, max_retries=3):
+      for attempt in range(max_retries):
+          try:
+              response = requests.get(url, headers=headers)
+              
+              if response.status_code == 429:
+                  retry_after = int(response.headers.get('Retry-After', 2 ** attempt))
+                  print(f'Rate limited. Retrying after {retry_after} seconds...')
+                  time.sleep(retry_after)
+                  continue
+              
+              response.raise_for_status()
+              return response
+              
+          except RequestException as e:
+              if attempt == max_retries - 1:
+                  raise e
+              
+              wait_time = 2 ** attempt
+              print(f'Attempt {attempt + 1} failed. Retrying in {wait_time}s...')
+              time.sleep(wait_time)
+
+  # Uso
+  response = request_with_backoff(
+      'https://api.example.com/v1/accounts',
+      headers={'Authorization': f'Bearer {api_key}'}
+  )
+  ```
+</CodeGroup>
+
+## Estratégias para Evitar Limites
+
+### 1. Use Cache
+
+Implemente cache para evitar requisições desnecessárias:
+
+```javascript
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+async function getCached(key, fetchFunction) {
+  const cached = cache.get(key);
+  
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  
+  const data = await fetchFunction();
+  cache.set(key, { data, timestamp: Date.now() });
+  
+  return data;
+}
+
+// Uso
+const account = await getCached(
+  `account_${id}`,
+  () => fetchAccount(id)
+);
+```
+
+### 2. Batch Requests
+
+Agrupe múltiplas operações em uma única requisição quando possível:
+
+```javascript
+// ❌ Evite múltiplas requisições
+for (const id of accountIds) {
+  await fetchAccount(id);
+}
+
+// ✅ Use batch endpoint
+const accounts = await fetch(`${baseURL}/accounts/batch`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify({ ids: accountIds })
+});
+```
+
+### 3. Webhooks em vez de Polling
+
+Use webhooks para receber atualizações em tempo real em vez de fazer polling:
+
+```javascript
+// ❌ Evite polling constante
+setInterval(async () => {
+  const status = await checkStatus();
+}, 5000); // A cada 5 segundos
+
+// ✅ Configure webhook
+// Veja: /webhooks/overview
+```
+
+### 4. Priorize Requisições
+
+Implemente uma fila com prioridades:
+
+```javascript
+class RateLimitedQueue {
+  constructor(requestsPerMinute) {
+    this.queue = [];
+    this.processing = false;
+    this.interval = 60000 / requestsPerMinute;
+  }
+
+  async add(fn, priority = 0) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ fn, priority, resolve, reject });
+      this.queue.sort((a, b) => b.priority - a.priority);
+      this.process();
+    });
+  }
+
+  async process() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    const { fn, resolve, reject } = this.queue.shift();
+    
+    try {
+      const result = await fn();
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+    
+    setTimeout(() => {
+      this.processing = false;
+      this.process();
+    }, this.interval);
+  }
+}
+
+// Uso
+const queue = new RateLimitedQueue(100); // 100 req/min
+
+await queue.add(() => fetchAccount(1), 10); // Alta prioridade
+await queue.add(() => fetchAccount(2), 1);  // Baixa prioridade
+```
+
+## Dashboard de Monitoramento
+
+Monitore seu uso em tempo real no [painel de controle](https://dashboard.example.com/usage):
+
+- Gráficos de uso por hora/dia/mês
+- Alertas quando atingir 80% do limite
+- Histórico de erros 429
+- Recomendações de otimização
+
+<Tip>
+  Configure notificações por email para ser alertado quando estiver próximo dos limites.
+</Tip>
+
+## Aumentar Limites
+
+Se você precisa de limites maiores:
+
+<Steps>
+  <Step title="Avalie sua necessidade">
+    Certifique-se de ter otimizado seu uso da API (cache, batch, webhooks)
+  </Step>
+  
+  <Step title="Escolha um plano">
+    Veja nossos [planos](https://example.com/pricing) e escolha o mais adequado
+  </Step>
+  
+  <Step title="Entre em contato">
+    Para limites personalizados Enterprise, [fale conosco](mailto:sales@example.com)
+  </Step>
+</Steps>
+
+## Resumo
+
+<Check>Monitore os headers de rate limit em cada resposta</Check>
+<Check>Implemente retry com backoff exponencial</Check>
+<Check>Use cache para reduzir requisições</Check>
+<Check>Prefira batch requests quando possível</Check>
+<Check>Configure webhooks em vez de polling</Check>
+<Check>Implemente fila com priorização</Check>
+<Check>Monitore uso no dashboard</Check>

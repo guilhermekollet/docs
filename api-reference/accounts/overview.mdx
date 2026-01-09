@@ -1,0 +1,141 @@
+---
+title: 'Contas'
+description: 'Gerencie informações de contas e integrações com plataformas de anúncios'
+---
+
+## Visão Geral
+
+A API de Contas permite gerenciar informações de uso da sua conta, listar contas de anúncios vinculadas e criar integrações com plataformas como Facebook Ads.
+
+<CardGroup cols={2}>
+  <Card
+    title="Uso da Conta"
+    icon="chart-line"
+    href="/api-reference/accounts/usage"
+  >
+    Consulte estatísticas de uso e consumo
+  </Card>
+  <Card
+    title="Contas de Anúncios"
+    icon="rectangle-ad"
+    href="/api-reference/accounts/list-adaccounts"
+  >
+    Liste contas de anúncios vinculadas
+  </Card>
+  <Card
+    title="Integração Facebook"
+    icon="facebook"
+    href="/api-reference/accounts/create-facebook"
+  >
+    Crie integração com Facebook Ads
+  </Card>
+</CardGroup>
+
+## Recursos Principais
+
+### Monitoramento de Uso
+Acompanhe o consumo de créditos, requisições da API e limites da sua conta em tempo real.
+
+### Integrações Publicitárias
+Conecte contas do Facebook Ads, Google Ads e outras plataformas para sincronização automática de campanhas.
+
+### Multi-contas
+Gerencie múltiplas contas de anúncios de diferentes plataformas em um único lugar.
+
+## Casos de Uso
+
+### Dashboard de Consumo
+
+```javascript
+async function getDashboardData() {
+  const response = await fetch('https://api.monitoragrupo.com/v1/accounts/usage', {
+    headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+  });
+  
+  const usage = await response.json();
+  
+  return {
+    creditsUsed: usage.credits_used,
+    creditsRemaining: usage.credits_remaining,
+    apiRequests: usage.api_requests_today,
+    percentUsed: (usage.credits_used / usage.credits_total) * 100
+  };
+}
+```
+
+### Sincronização com Facebook Ads
+
+```python
+import requests
+
+def sync_facebook_account(access_token):
+    """Cria integração com Facebook Ads"""
+    response = requests.post(
+        'https://api.monitoragrupo.com/v1/accounts/create-facebook',
+        headers={'Authorization': 'Bearer YOUR_TOKEN'},
+        json={'access_token': access_token}
+    )
+    
+    data = response.json()
+    print(f"✅ {len(data['ad_accounts'])} contas vinculadas")
+    
+    return data['ad_accounts']
+
+# Listar contas vinculadas
+def list_ad_accounts():
+    response = requests.get(
+        'https://api.monitoragrupo.com/v1/accounts/list-adaccounts',
+        headers={'Authorization': 'Bearer YOUR_TOKEN'}
+    )
+    
+    for account in response.json()['accounts']:
+        print(f"{account['platform']}: {account['name']} ({account['account_id']})")
+```
+
+## Limites e Quotas
+
+<Note>
+  Os limites variam de acordo com seu plano de assinatura. Consulte o endpoint de uso para ver seus limites atuais.
+</Note>
+
+| Recurso | Plano Free | Plano Pro | Plano Enterprise |
+|---------|-----------|-----------|------------------|
+| **Créditos/mês** | 1.000 | 10.000 | Ilimitado |
+| **Requisições/dia** | 1.000 | 10.000 | 100.000 |
+| **Contas de Anúncios** | 3 | 10 | Ilimitado |
+| **Campanhas Ativas** | 10 | 100 | Ilimitado |
+
+## Melhores Práticas
+
+<AccordionGroup>
+  <Accordion title="Monitoramento Proativo">
+    Configure alertas quando o uso atingir 80% da quota para evitar interrupções no serviço.
+  </Accordion>
+  
+  <Accordion title="Cache de Dados">
+    Implemente cache para dados de uso que não mudam com frequência, reduzindo chamadas à API.
+  </Accordion>
+  
+  <Accordion title="Tokens Seguros">
+    Armazene tokens de integração (Facebook, Google) de forma criptografada e renove-os periodicamente.
+  </Accordion>
+</AccordionGroup>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card
+    title="Créditos"
+    icon="coins"
+    href="/api-reference/credits/history"
+  >
+    Veja o histórico de consumo de créditos
+  </Card>
+  <Card
+    title="Campanhas"
+    icon="bullhorn"
+    href="/api-reference/campaigns/list-groups"
+  >
+    Gerencie suas campanhas publicitárias
+  </Card>
+</CardGroup>

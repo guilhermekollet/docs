@@ -1,0 +1,135 @@
+---
+title: "Obter Perfil do Usuário"
+api: "GET /auth/me"
+description: "Retorna informações do usuário autenticado atualmente."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint permite que você obtenha as informações do perfil do usuário que está autenticado com o access_token fornecido. É útil para validar o token e obter dados do usuário logado.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token obtido no endpoint de login.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="message" type="string">
+  Mensagem de confirmação da autenticação.
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  Objeto contendo as informações do usuário.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="id" type="string">
+      ID único do usuário (UUID).
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      Email do usuário.
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Nome completo do usuário.
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      Data de criação da conta (ISO 8601).
+    </ResponseField>
+    
+    <ResponseField name="role" type="string">
+      Função/permissão do usuário (ex: "user", "admin").
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.monitora.com/auth/me \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN_AQUI'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.monitora.com/auth/me', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer SEU_ACCESS_TOKEN_AQUI'
+  }
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/auth/me"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN_AQUI"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "message": "Você está autenticado!",
+  "user": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "email": "usuario@exemplo.com",
+    "name": "João Silva",
+    "created_at": "2025-01-01T10:00:00.000Z",
+    "role": "user"
+  }
+}
+```
+
+```json Erro - Não Autorizado (401)
+{
+  "statusCode": 401,
+  "message": "Token inválido ou expirado",
+  "error": "Unauthorized"
+}
+```
+
+</ResponseExample>
+
+## Casos de Uso
+
+<Card title="Validação de Token" icon="check">
+  Use este endpoint para verificar se o token de autenticação ainda é válido antes de realizar operações críticas.
+</Card>
+
+<Card title="Obter Dados do Usuário" icon="user">
+  Recupere informações do perfil do usuário para exibir em interfaces ou personalizar a experiência.
+</Card>
+
+<Card title="Verificação de Permissões" icon="shield">
+  Confirme o nível de acesso do usuário autenticado verificando o campo `role`.
+</Card>
+
+## Notas Importantes
+
+<Info>
+  Este endpoint não requer parâmetros adicionais além do token de autenticação no header.
+</Info>
+
+<Warning>
+  Certifique-se de incluir o prefixo "Bearer " antes do token no header Authorization.
+</Warning>

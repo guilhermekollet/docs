@@ -1,4 +1,218 @@
 ---
-title: 'Groups'
+title: "Groups API"
+description: "A API Groups permite listar, associar e gerenciar grupos do WhatsApp vinculados a instâncias (monitors) e campanhas no Monitora API."
 ---
 
+## Autenticação
+
+A maioria dos endpoints requer autenticação.
+
+Header (JWT):
+
+```
+Authorization: Bearer <seu_token_jwt>
+```
+
+Header alternativo (server-to-server, quando aplicável):
+
+```
+x-api-token: <seu_api_token>
+```
+
+---
+
+## Endpoints
+
+<AccordionGroup>
+
+  <Accordion title="Listar Grupos da Instância" icon="list">
+    Lista todos os grupos disponíveis em uma instância (monitor), obtidos via provedor (ex.: UAZAPI) e/ou cache interno.
+
+    **Método:** GET
+    **URL:** `/groups`
+
+    <ParamField query="monitorId" type="string" required>
+      ID da instância (monitor).
+    </ParamField>
+
+    <ParamField query="page" type="number" default="1">
+      Número da página.
+    </ParamField>
+
+    <ParamField query="limit" type="number" default="100">
+      Itens por página.
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /groups?monitorId=uuid&page=1&limit=100
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "data": [
+        {
+          "id": "group_external_id",
+          "name": "Promoção Relâmpago #01",
+          "participantsCount": 256,
+          "isAdmin": true
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "limit": 100,
+        "total": 1
+      }
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Listar Grupos por Campanha" icon="filter">
+    Lista grupos associados ou não associados a uma campanha específica.
+
+    **Método:** GET
+    **URL:** `/groups/campaign`
+
+    <ParamField query="campaignId" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <ParamField query="monitorId" type="string" required>
+      ID da instância (monitor).
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /groups/campaign?campaignId=uuid&monitorId=uuid
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "all": [
+        {
+          "id": "group_external_id",
+          "name": "Promoção Relâmpago #01"
+        }
+      ],
+      "associated": [
+        {
+          "id": "group_external_id",
+          "name": "Promoção Relâmpago #01"
+        }
+      ],
+      "unassociated": [],
+      "nextPosition": null
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Associar Grupo à Campanha" icon="link">
+    Associa um grupo do WhatsApp a uma campanha.
+
+    **Método:** POST
+    **URL:** `/groups/associate`
+
+    <ParamField body="campaignId" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <ParamField body="groupId" type="string" required>
+      ID externo do grupo do WhatsApp.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "campaignId": "uuid",
+      "groupId": "group_external_id"
+    }
+    ```
+    </RequestExample>
+
+    <Note>
+      Retorna **200 OK** em caso de sucesso.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="Desassociar Grupo da Campanha" icon="unlink">
+    Remove a associação entre um grupo do WhatsApp e uma campanha.
+
+    **Método:** DELETE
+    **URL:** `/groups/associate`
+
+    <ParamField body="campaignId" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <ParamField body="groupId" type="string" required>
+      ID externo do grupo do WhatsApp.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "campaignId": "uuid",
+      "groupId": "group_external_id"
+    }
+    ```
+    </RequestExample>
+
+    <Note>
+      Retorna **204 No Content** em caso de sucesso.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="Atualizar Metadados do Grupo" icon="edit">
+    Atualiza informações salvas localmente sobre um grupo (nome, rótulos internos, observações, etc.).
+
+    **Método:** PATCH
+    **URL:** `/groups/{groupId}`
+
+    <ParamField path="groupId" type="string" required>
+      ID externo do grupo.
+    </ParamField>
+
+    <ParamField body="alias" type="string">
+      Nome interno/apelido do grupo.
+    </ParamField>
+
+    <ParamField body="notes" type="string">
+      Observações internas.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "alias": "Grupo VIP Janeiro",
+      "notes": "Grupo com maior taxa de conversão"
+    }
+    ```
+    </RequestExample>
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Erros comuns
+
+- **400 Bad Request**: parâmetros inválidos.
+- **401 Unauthorized**: token ausente ou inválido.
+- **403 Forbidden**: usuário sem permissão.
+- **404 Not Found**: grupo ou campanha não encontrada.
+- **422 Unprocessable Entity**: erro de validação.

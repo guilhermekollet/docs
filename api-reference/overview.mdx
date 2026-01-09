@@ -1,0 +1,228 @@
+---
+title: 'Visão Geral da API'
+description: 'Documentação completa de endpoints e recursos disponíveis'
+---
+
+## Introdução
+
+Esta seção contém a referência completa de todos os endpoints disponíveis na API. Cada endpoint está documentado com:
+
+- Parâmetros de entrada
+- Exemplos de requisições
+- Respostas esperadas
+- Códigos de erro possíveis
+
+<Note>
+  Todos os endpoints requerem autenticação. Veja [Autenticação](/authentication/overview) para mais detalhes.
+</Note>
+
+## URL Base
+
+```
+https://api.example.com/v1
+```
+
+## Recursos Disponíveis
+
+<CardGroup cols={2}>
+  <Card
+    title="Accounts"
+    icon="users"
+    href="#"
+  >
+    Gerencie contas de usuários e suas permissões
+  </Card>
+  <Card
+    title="Campaigns"
+    icon="megaphone"
+    href="#"
+  >
+    Crie e gerencie campanhas de marketing
+  </Card>
+  <Card
+    title="Credits"
+    icon="coins"
+    href="#"
+  >
+    Gerencie créditos e saldos
+  </Card>
+  <Card
+    title="Groups"
+    icon="users-rectangle"
+    href="#"
+  >
+    Organize usuários em grupos
+  </Card>
+  <Card
+    title="Incidents"
+    icon="triangle-exclamation"
+    href="#"
+  >
+    Rastreie e gerencie incidentes
+  </Card>
+  <Card
+    title="Monitors"
+    icon="chart-line"
+    href="#"
+  >
+    Configure monitores e alertas
+  </Card>
+  <Card
+    title="SmartLinks"
+    icon="link"
+    href="#"
+  >
+    Crie links inteligentes rastreáveis
+  </Card>
+  <Card
+    title="Subscriptions"
+    icon="credit-card"
+    href="#"
+  >
+    Gerencie assinaturas e planos
+  </Card>
+</CardGroup>
+
+## Convenções da API
+
+### Formatos de Dados
+
+- **Datas**: ISO 8601 format (`2026-01-09T10:30:00Z`)
+- **IDs**: Strings com prefixo do tipo (`acc_123`, `cmp_456`)
+- **Valores monetários**: Inteiros em centavos
+- **Booleanos**: `true` ou `false`
+
+### Paginação
+
+Endpoints que retornam listas suportam paginação:
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 100,
+    "total": 523,
+    "has_more": true
+  }
+}
+```
+
+**Parâmetros:**
+- `page`: Número da página (padrão: 1)
+- `limit`: Itens por página (padrão: 100, máx: 1000)
+
+### Ordenação
+
+Use o parâmetro `sort`:
+
+```
+GET /v1/accounts?sort=-created_at
+```
+
+- Prefixo `-` para ordem decrescente
+- Sem prefixo para ordem crescente
+
+### Filtros
+
+Filtre resultados com parâmetros de query:
+
+```
+GET /v1/accounts?status=active&created_after=2026-01-01
+```
+
+### Expansão de Recursos
+
+Use `expand` para incluir recursos relacionados:
+
+```
+GET /v1/accounts/acc_123?expand=subscription,credits
+```
+
+### Idempotência
+
+Use o header `Idempotency-Key` para operações críticas:
+
+```http
+POST /v1/payments
+Idempotency-Key: unique-key-123
+```
+
+## Exemplos Rápidos
+
+### Listar Contas
+
+```bash
+curl --request GET \
+  --url 'https://api.example.com/v1/accounts?limit=10' \
+  --header 'Authorization: Bearer YOUR_API_KEY'
+```
+
+### Criar Conta
+
+```bash
+curl --request POST \
+  --url https://api.example.com/v1/accounts \
+  --header 'Authorization: Bearer YOUR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "type": "business"
+  }'
+```
+
+### Atualizar Conta
+
+```bash
+curl --request PATCH \
+  --url https://api.example.com/v1/accounts/acc_123 \
+  --header 'Authorization: Bearer YOUR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "John Smith"
+  }'
+```
+
+### Deletar Conta
+
+```bash
+curl --request DELETE \
+  --url https://api.example.com/v1/accounts/acc_123 \
+  --header 'Authorization: Bearer YOUR_API_KEY'
+```
+
+## Ambiente Sandbox
+
+Para testes, use o ambiente sandbox:
+
+```
+https://sandbox-api.example.com/v1
+```
+
+- Dados de teste isolados
+- Sem cobrança real
+- Mesma funcionalidade da produção
+
+<Tip>
+  Use chaves de API com prefixo `sk_test_` para o sandbox
+</Tip>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card
+    title="Explorar Endpoints"
+    icon="code"
+    href="#"
+  >
+    Navegue pela documentação completa de cada endpoint
+  </Card>
+  <Card
+    title="Testar no Playground"
+    icon="play"
+    href="#"
+  >
+    Use o playground interativo para testar requisições
+  </Card>
+</CardGroup>

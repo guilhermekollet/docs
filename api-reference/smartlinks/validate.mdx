@@ -1,0 +1,338 @@
+---
+title: 'Validar Link do WhatsApp'
+api: 'POST /smartlinks/validate'
+description: 'Valida um link de convite de grupo ou canal do WhatsApp'
+---
+
+## Descrição
+
+Este endpoint valida um link de convite do WhatsApp verificando metadados como `og:image` e outros dados estruturados. Útil para garantir que o link está ativo antes de adicioná-lo a uma campanha.
+
+<Note>
+  A validação consome créditos da sua conta. Certifique-se de ter saldo suficiente.
+</Note>
+
+## Autenticação
+
+<CodeGroup>
+```bash Bearer Token
+Authorization: Bearer seu_token_jwt
+```
+
+```bash API Token
+x-api-token: seu_api_token
+```
+</CodeGroup>
+
+## Body Parameters
+
+<ParamField body="url" type="string" required>
+  URL completa do convite do WhatsApp (ex: `https://chat.whatsapp.com/ABC123`) ou apenas o código do convite (ex: `ABC123`).
+  
+  **Formatos aceitos:**
+  - `https://chat.whatsapp.com/ABC123XYZ`
+  - `chat.whatsapp.com/ABC123XYZ`
+  - `ABC123XYZ`
+</ParamField>
+
+## Response
+
+<ResponseField name="is_valid" type="boolean" required>
+  Indica se o link do WhatsApp é válido e está ativo.
+</ResponseField>
+
+<ResponseField name="validated_at" type="string" required>
+  Data e hora da validação no formato ISO 8601.
+  
+  Exemplo: `2026-01-09T10:30:00.000Z`
+</ResponseField>
+
+<ResponseField name="url" type="string" required>
+  URL completa e normalizada do link validado.
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  Metadados adicionais do grupo (quando disponível).
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="group_name" type="string">
+      Nome do grupo do WhatsApp
+    </ResponseField>
+    <ResponseField name="image_url" type="string">
+      URL da imagem do grupo (og:image)
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Descrição do grupo
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.example.com/v1/smartlinks/validate \
+  --header 'Authorization: Bearer YOUR_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/v1/smartlinks/validate', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    url: 'https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh'
+  })
+});
+
+const data = await response.json();
+console.log('Link válido:', data.is_valid);
+```
+
+```python Python
+import requests
+
+url = "https://api.example.com/v1/smartlinks/validate"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+payload = {
+    "url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+data = response.json()
+print(f"Link válido: {data['is_valid']}")
+```
+
+```php PHP
+<?php
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+  CURLOPT_URL => "https://api.example.com/v1/smartlinks/validate",
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_POST => true,
+  CURLOPT_HTTPHEADER => [
+    "Authorization: Bearer YOUR_TOKEN",
+    "Content-Type: application/json"
+  ],
+  CURLOPT_POSTFIELDS => json_encode([
+    "url" => "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh"
+  ])
+]);
+
+$response = curl_exec($curl);
+$data = json_decode($response, true);
+
+echo "Link válido: " . ($data['is_valid'] ? 'Sim' : 'Não');
+curl_close($curl);
+?>
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso
+{
+  "is_valid": true,
+  "validated_at": "2026-01-09T10:30:00.000Z",
+  "url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh",
+  "metadata": {
+    "group_name": "Promoção Relâmpago",
+    "image_url": "https://pps.whatsapp.net/v/...",
+    "description": "Grupo oficial da promoção"
+  }
+}
+```
+
+```json Link Inválido
+{
+  "is_valid": false,
+  "validated_at": "2026-01-09T10:30:00.000Z",
+  "url": "https://chat.whatsapp.com/INVALID_CODE"
+}
+```
+
+```json Erro - URL Inválida
+{
+  "error": {
+    "code": "validation_error",
+    "message": "URL do WhatsApp inválida",
+    "status": 400,
+    "details": {
+      "field": "url",
+      "reason": "invalid_format"
+    }
+  }
+}
+```
+
+```json Erro - Créditos Insuficientes
+{
+  "error": {
+    "code": "insufficient_credits",
+    "message": "Saldo de créditos insuficiente",
+    "status": 402,
+    "details": {
+      "required_credits": 1,
+      "available_credits": 0
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Códigos de Status
+
+| Código | Descrição |
+|--------|-----------|
+| `200` | Link validado com sucesso |
+| `400` | URL inválida ou malformada |
+| `401` | Token de autenticação inválido |
+| `402` | Créditos insuficientes |
+| `429` | Limite de taxa excedido |
+| `500` | Erro interno do servidor |
+
+## Casos de Uso
+
+### Validação Antes de Criar Campanha
+
+```javascript
+async function createCampaignWithValidation(whatsappUrl) {
+  // 1. Validar o link primeiro
+  const validation = await fetch('https://api.example.com/v1/smartlinks/validate', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ url: whatsappUrl })
+  });
+
+  const { is_valid, metadata } = await validation.json();
+
+  if (!is_valid) {
+    throw new Error('Link do WhatsApp inválido ou expirado');
+  }
+
+  // 2. Criar campanha com link validado
+  const campaign = await fetch('https://api.example.com/v1/smartlinks/campaigns', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: 'Campanha de Promoção',
+      whatsapp_url: whatsappUrl,
+      group_name: metadata.group_name
+    })
+  });
+
+  return await campaign.json();
+}
+```
+
+### Validação em Lote
+
+```python
+import requests
+import asyncio
+
+async def validate_multiple_links(links):
+    """Valida múltiplos links do WhatsApp"""
+    results = []
+    
+    for link in links:
+        response = requests.post(
+            'https://api.example.com/v1/smartlinks/validate',
+            headers={'Authorization': 'Bearer YOUR_TOKEN'},
+            json={'url': link}
+        )
+        
+        data = response.json()
+        results.append({
+            'url': link,
+            'is_valid': data.get('is_valid', False),
+            'metadata': data.get('metadata')
+        })
+        
+        # Evitar rate limiting
+        await asyncio.sleep(0.1)
+    
+    return results
+
+# Uso
+links = [
+    'https://chat.whatsapp.com/ABC123',
+    'https://chat.whatsapp.com/XYZ789',
+    'https://chat.whatsapp.com/DEF456'
+]
+
+results = asyncio.run(validate_multiple_links(links))
+valid_links = [r for r in results if r['is_valid']]
+print(f"{len(valid_links)}/{len(links)} links válidos")
+```
+
+## Notas Importantes
+
+<Warning>
+  **Consumo de Créditos**: Cada validação consome 1 crédito da sua conta, independente se o link é válido ou não.
+</Warning>
+
+<Tip>
+  **Cache de Validações**: Recomendamos implementar cache local para evitar validar o mesmo link múltiplas vezes em um curto período.
+</Tip>
+
+<Note>
+  **Timeout**: A validação tem timeout de 10 segundos. Se o WhatsApp não responder neste período, considere o link como inválido.
+</Note>
+
+## Erros Comuns
+
+<AccordionGroup>
+  <Accordion title="URL inválida (400)" icon="circle-xmark">
+    **Causa**: Formato de URL incorreto ou código inválido.
+    
+    **Solução**: 
+    - Verifique se a URL começa com `https://chat.whatsapp.com/`
+    - Confirme que o código tem o formato correto
+    - Teste com apenas o código do convite
+  </Accordion>
+
+  <Accordion title="Créditos insuficientes (402)" icon="coins">
+    **Causa**: Sua conta não tem créditos suficientes.
+    
+    **Solução**:
+    - Adicione créditos à sua conta
+    - Upgrade para um plano com mais créditos
+    - Verifique saldo em `/credits/balance`
+  </Accordion>
+
+  <Accordion title="Rate limit (429)" icon="gauge-high">
+    **Causa**: Muitas requisições em curto período.
+    
+    **Solução**:
+    - Implemente backoff exponencial
+    - Reduza frequência de validações
+    - Use cache para links já validados
+  </Accordion>
+</AccordionGroup>
+
+## Webhooks Relacionados
+
+Configure webhooks para ser notificado quando:
+- `smartlink.validated` - Link validado com sucesso
+- `smartlink.validation_failed` - Falha na validação
+
+Veja [Webhooks](/webhooks/overview) para mais detalhes.

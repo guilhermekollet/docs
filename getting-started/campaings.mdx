@@ -1,4 +1,290 @@
 ---
-title: 'Campaings'
+title: "Campaign API"
+description: "A API Campaign permite criar, listar, atualizar e remover campanhas no Monitora API, além de consultar métricas e vinculações (ex.: short code, instância/monitor e grupos associados)."
 ---
 
+## Autenticação
+
+A maioria dos endpoints requer autenticação via JWT.
+
+Header obrigatório:
+
+```
+Authorization: Bearer <seu_token_jwt>
+```
+
+---
+
+## Endpoints
+
+<AccordionGroup>
+
+  <Accordion title="Criar Campanha" icon="plus-circle">
+    Cria uma nova campanha.
+
+    **Método:** POST
+    **URL:** `/campaigns`
+
+    <ParamField body="name" type="string" required>
+      Nome da campanha.
+    </ParamField>
+
+    <ParamField body="shortCode" type="string" required>
+      Código curto identificador (ex.: ABC123).
+    </ParamField>
+
+    <ParamField body="status" type="string" required>
+      Status inicial (ex.: active, paused, archived).
+    </ParamField>
+
+    <ParamField body="description" type="string">
+      Descrição opcional da campanha.
+    </ParamField>
+
+    <ParamField body="monitorId" type="string">
+      ID da instância/monitor associada (se aplicável).
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "name": "Campanha Janeiro",
+      "shortCode": "JAN26",
+      "status": "active",
+      "description": "Campanha para captação de leads em janeiro",
+      "monitorId": "uuid"
+    }
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "id": "uuid",
+      "name": "Campanha Janeiro",
+      "shortCode": "JAN26",
+      "status": "active",
+      "description": "Campanha para captação de leads em janeiro",
+      "monitorId": "uuid",
+      "createdAt": "2026-01-10T12:00:00.000Z",
+      "updatedAt": "2026-01-10T12:00:00.000Z"
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Listar Campanhas" icon="list">
+    Lista campanhas com paginação e filtros.
+
+    **Método:** GET
+    **URL:** `/campaigns`
+
+    <ParamField query="page" type="number" default="1">
+      Número da página.
+    </ParamField>
+
+    <ParamField query="limit" type="number" default="10">
+      Itens por página.
+    </ParamField>
+
+    <ParamField query="search" type="string">
+      Filtrar por nome ou shortCode.
+    </ParamField>
+
+    <ParamField query="status" type="string">
+      Filtrar por status (active, paused, archived).
+    </ParamField>
+
+    <ParamField query="monitorId" type="string">
+      Filtrar por instância/monitor associado.
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /campaigns?page=1&limit=10&status=active&search=JAN
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "data": [
+        {
+          "id": "uuid",
+          "name": "Campanha Janeiro",
+          "shortCode": "JAN26",
+          "status": "active",
+          "monitorId": "uuid",
+          "createdAt": "2026-01-10T12:00:00.000Z"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "limit": 10,
+        "total": 1,
+        "totalPages": 1,
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Obter Campanha por ID" icon="search">
+    Retorna os detalhes de uma campanha específica.
+
+    **Método:** GET
+    **URL:** `/campaigns/{id}`
+
+    <ParamField path="id" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /campaigns/uuid
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "id": "uuid",
+      "name": "Campanha Janeiro",
+      "shortCode": "JAN26",
+      "status": "active",
+      "description": "Campanha para captação de leads em janeiro",
+      "monitorId": "uuid",
+      "createdAt": "2026-01-10T12:00:00.000Z",
+      "updatedAt": "2026-01-12T09:40:00.000Z"
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+  <Accordion title="Atualizar Campanha" icon="edit">
+    Atualiza dados de uma campanha.
+
+    **Método:** PATCH
+    **URL:** `/campaigns/{id}`
+
+    <ParamField path="id" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <ParamField body="name" type="string">
+      Nome da campanha.
+    </ParamField>
+
+    <ParamField body="status" type="string">
+      Status (active, paused, archived).
+    </ParamField>
+
+    <ParamField body="description" type="string">
+      Descrição da campanha.
+    </ParamField>
+
+    <ParamField body="monitorId" type="string">
+      Atualiza a instância/monitor associada.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "status": "paused",
+      "description": "Pausada para ajuste de criativos"
+    }
+    ```
+    </RequestExample>
+
+    <Note>
+      Retorna a campanha atualizada.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="Remover Campanha" icon="trash">
+    Remove uma campanha do sistema.
+
+    **Método:** DELETE
+    **URL:** `/campaigns/{id}`
+
+    <ParamField path="id" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <Note>
+      Retorna **204 No Content** em caso de sucesso.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="Obter Insights da Campanha" icon="bar-chart">
+    Retorna métricas consolidadas da campanha (ex.: cliques, entradas e conversões), quando disponível.
+
+    **Método:** GET
+    **URL:** `/campaigns/{id}/insights`
+
+    <ParamField path="id" type="string" required>
+      ID da campanha.
+    </ParamField>
+
+    <ParamField query="startDate" type="string">
+      Data inicial (YYYY-MM-DD).
+    </ParamField>
+
+    <ParamField query="endDate" type="string">
+      Data final (YYYY-MM-DD).
+    </ParamField>
+
+    <RequestExample>
+    ```bash
+    GET /campaigns/uuid/insights?startDate=2026-01-01&endDate=2026-01-31
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "campaignId": "uuid",
+      "shortCode": "JAN26",
+      "period": {
+        "startDate": "2026-01-01",
+        "endDate": "2026-01-31"
+      },
+      "metrics": {
+        "clicks": 1200,
+        "entries": 310,
+        "conversionRate": 0.2583
+      }
+    }
+    ```
+    </ResponseExample>
+
+    <Note>
+      Caso sua plataforma use **Smartlinks** para tracking, os dados podem refletir agregações desse módulo.
+    </Note>
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Erros comuns
+
+- **400 Bad Request**: payload inválido (campos faltando, shortCode duplicado, etc.).
+- **401 Unauthorized**: token ausente/expirado/inválido.
+- **403 Forbidden**: usuário sem permissão no recurso.
+- **404 Not Found**: campanha não encontrada.
+- **422 Unprocessable Entity**: validações (ex.: status fora do enum).
