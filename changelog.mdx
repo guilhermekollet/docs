@@ -1,142 +1,124 @@
 ---
 title: 'Changelog'
-description: 'Acompanhe todas as mudanças e atualizações da API'
+description: 'Acompanhe todas as mudanças e atualizações da Monitora API'
 ---
 
 ## 2026
 
 ### Janeiro
 
-<Accordion title="v1.3.0 - 9 de Janeiro, 2026" icon="rocket">
+<Accordion title="v1.2.0 - 9 de Janeiro, 2026" icon="rocket">
   
   #### 🎉 Novos Recursos
   
-  - **Webhooks aprimorados**: Adicionado suporte para eventos de créditos
-  - **Batch operations**: Novo endpoint para operações em lote
-  - **Filtros avançados**: Suporte a queries complexas com operadores AND/OR
+  - **Documentação Interativa**: Nova documentação completa com playground integrado
+  - **API de Assinaturas**: Endpoints para gerenciar planos e checkout via Stripe
+  - **Portal do Cliente**: Novo endpoint `/subscriptions/portal` para autoatendimento
   
   #### 🔧 Melhorias
   
-  - Performance 30% mais rápida em endpoints de listagem
-  - Paginação otimizada para grandes datasets
-  - Cache aprimorado para reduzir latência
+  - Autenticação simplificada com JWT Bearer Token
+  - Performance otimizada em listagem de monitores e incidentes
+  - Respostas de erro mais descritivas e padronizadas
+  - Paginação aprimorada em todos os endpoints de listagem
   
-  #### 🐛 Correções
+  #### 📚 Documentação
   
-  - Corrigido problema com filtros de data em `/campaigns`
-  - Resolvido erro de timeout em requisições grandes
-  - Ajustado comportamento de rate limiting
-  
-  #### ⚠️ Mudanças Importantes
-  
-  <Warning>
-    O campo `status` em campanhas agora retorna valores em snake_case (`in_progress` em vez de `inProgress`)
-  </Warning>
-  
-</Accordion>
-
-### Dezembro 2025
-
-<Accordion title="v1.2.5 - 15 de Dezembro, 2025" icon="wrench">
-  
-  #### 🔧 Melhorias
-  
-  - Adicionado suporte para OAuth 2.0 PKCE
-  - Melhorias na validação de dados de entrada
-  - Documentação expandida com mais exemplos
-  
-  #### 🐛 Correções
-  
-  - Corrigido erro ao criar monitores com múltiplas condições
-  - Resolvido problema de encoding em campos de texto
-  
-</Accordion>
-
-<Accordion title="v1.2.0 - 1 de Dezembro, 2025" icon="star">
-  
-  #### 🎉 Novos Recursos
-  
-  - **SmartLinks**: Novo recurso para criação de links inteligentes
-  - **Grupos**: Endpoint para gerenciamento de grupos de usuários
-  - **API de Incidentes**: Gerencie incidentes programaticamente
-  
-  #### 🔧 Melhorias
-  
-  - Rate limits aumentados para planos Pro e Enterprise
-  - Novo campo `metadata` em todos os recursos principais
-  - Suporte a timestamps com precisão de milissegundos
+  - 40+ páginas de documentação completa
+  - Exemplos de código em JavaScript, Python, PHP e cURL
+  - Overview pages para cada grupo de endpoints
+  - Guia completo de autenticação e refresh tokens
   
 </Accordion>
 
 ## 2025
 
-### Novembro
+### Dezembro
 
-<Accordion title="v1.1.5 - 20 de Novembro, 2025" icon="bug">
-  
-  #### 🐛 Correções
-  
-  - Corrigido erro 500 ao deletar contas com campanhas ativas
-  - Resolvido problema de validação em campos opcionais
-  - Ajustado comportamento de paginação em listas vazias
-  
-</Accordion>
-
-<Accordion title="v1.1.0 - 5 de Novembro, 2025" icon="code">
+<Accordion title="v1.1.5 - 15 de Dezembro, 2025" icon="chart-line">
   
   #### 🎉 Novos Recursos
   
-  - **Webhooks**: Implementação inicial de webhooks
-  - **Filtros de data**: Suporte para filtros `created_after` e `created_before`
-  - **Expansão de recursos**: Parâmetro `expand` para incluir recursos relacionados
+  - **API de Incidentes**: Estatísticas detalhadas de incidentes de monitores e links
+  - **Breakdown de Créditos**: Novo endpoint `/credits/breakdown` com análise detalhada
+  - **Insights de Monitores**: Endpoint `/monitors/{id}/insights` para métricas avançadas
   
   #### 🔧 Melhorias
   
-  - Headers de rate limit mais informativos
-  - Mensagens de erro mais descritivas
-  - Suporte a compressão gzip
+  - Cache otimizado para reduzir latência em 40%
+  - Validação aprimorada de SmartLinks
+  - Headers de resposta mais informativos
   
-  #### 📚 Documentação
+</Accordion>
+
+<Accordion title="v1.1.0 - 1 de Dezembro, 2025" icon="star">
   
-  - Adicionados guias de melhores práticas
-  - Exemplos de código em 5 linguagens
-  - Tutorial de início rápido
+  #### 🎉 Novos Recursos
+  
+  - **SmartLinks**: Sistema completo de links inteligentes com rotação automática
+  - **Validação de Links**: Endpoint `/smartlinks/validate` para verificar disponibilidade
+  - **Atividades de Campanha**: Rastreamento detalhado de cliques e conversões
+  - **Atualização de Detalhes**: Endpoint `/smartlinks/{code}/details` para edição em lote
+  
+  #### 🔧 Melhorias
+  
+  - Algoritmo de rotação de grupos aprimorado
+  - Rate limits aumentados para planos pagos
+  - Suporte a timestamps ISO 8601 padronizado
+  
+</Accordion>
+
+### Novembro
+
+<Accordion title="v1.0.8 - 20 de Novembro, 2025" icon="users">
+  
+  #### 🎉 Novos Recursos
+  
+  - **API de Grupos**: Gerenciamento completo de grupos do WhatsApp
+  - **Upload de Imagem**: Endpoint `/groups/{id}/image` para atualizar foto do grupo
+  - **Listagem de Grupos por Campanha**: Endpoint `/campaigns/{id}/groups`
+  
+  #### 🐛 Correções
+  
+  - Corrigido erro ao listar grupos com campanhas vazias
+  - Resolvido problema de validação em upload de imagens grandes
+  - Ajustado comportamento de paginação em listas com filtros
+  
+</Accordion>
+
+<Accordion title="v1.0.5 - 5 de Novembro, 2025" icon="chart-bar">
+  
+  #### 🎉 Novos Recursos
+  
+  - **API de Monitores**: CRUD completo de monitores de grupos
+  - **Notificações em Tempo Real**: Alertas quando grupos atingem capacidade máxima
+  - **Filtros Avançados**: Suporte para filtros por data, status e tipo
+  
+  #### 🔧 Melhorias
+  
+  - Performance 50% mais rápida em endpoints de listagem
+  - Headers de rate limit mais informativos (`X-RateLimit-*`)
+  - Mensagens de erro padronizadas seguindo RFC 7807
   
 </Accordion>
 
 ### Outubro
 
-<Accordion title="v1.0.5 - 18 de Outubro, 2025" icon="shield">
-  
-  #### 🔒 Segurança
-  
-  - Implementado rotação automática de chaves antigas
-  - Adicionado suporte para escopos granulares
-  - Melhorias na validação de tokens OAuth
-  
-  #### 🐛 Correções
-  
-  - Corrigido vazamento de memória em processamento de imagens
-  - Resolvido problema de race condition em operações concorrentes
-  
-</Accordion>
-
 <Accordion title="v1.0.0 - 1 de Outubro, 2025" icon="flag-checkered">
   
   #### 🎉 Lançamento Oficial
   
-  Primeira versão estável da API com recursos principais:
+  Primeira versão estável da Monitora API em produção:
   
-  - ✅ Gerenciamento de Contas
-  - ✅ Campanhas
-  - ✅ Monitores
-  - ✅ Créditos
-  - ✅ Autenticação com API Keys
-  - ✅ Documentação completa
-  - ✅ SDKs para JavaScript, Python e PHP
+  - ✅ **Autenticação JWT**: Login com email/senha e refresh tokens
+  - ✅ **Gerenciamento de Contas**: Uso, AdAccounts e integração com Facebook
+  - ✅ **Sistema de Créditos**: Histórico e controle de consumo
+  - ✅ **API de Campanhas**: Listagem e gerenciamento
+  - ✅ **Rate Limiting**: 100 req/min por padrão, configurável por plano
+  - ✅ **Documentação Base**: Endpoints principais documentados
   
   <Check>
-    A API está agora oficialmente em produção e pronta para uso!
+    A Monitora API está oficialmente em produção! 🚀
   </Check>
   
 </Accordion>
@@ -147,9 +129,10 @@ description: 'Acompanhe todas as mudanças e atualizações da API'
   
   #### Beta Público
   
-  - Lançamento da versão beta pública
-  - Feedback da comunidade incorporado
-  - Testes de carga e otimizações
+  - Lançamento da versão beta pública para parceiros selecionados
+  - Testes de carga com até 10.000 requisições/segundo
+  - Feedback incorporado de 50+ desenvolvedores beta testers
+  - Otimizações de performance e estabilidade
   
 </Accordion>
 
@@ -157,8 +140,9 @@ description: 'Acompanhe todas as mudanças e atualizações da API'
   
   #### Beta Privado
   
-  - Início do programa de beta privado
-  - Primeiros parceiros testando a API
+  - Início do programa de beta privado com 10 empresas parceiras
+  - Primeiros endpoints de autenticação e contas
+  - Sistema básico de créditos implementado
   - Ajustes baseados em feedback inicial
   
 </Accordion>
@@ -167,28 +151,42 @@ description: 'Acompanhe todas as mudanças e atualizações da API'
 
 Seguimos o [Versionamento Semântico](https://semver.org/):
 
-- **MAJOR** (v2.0.0): Mudanças incompatíveis com versões anteriores
-- **MINOR** (v1.1.0): Novos recursos mantendo compatibilidade
-- **PATCH** (v1.0.1): Correções de bugs mantendo compatibilidade
+- **MAJOR** (v2.0.0): Mudanças incompatíveis com versões anteriores (breaking changes)
+- **MINOR** (v1.1.0): Novos recursos mantendo compatibilidade retroativa
+- **PATCH** (v1.0.1): Correções de bugs e melhorias sem breaking changes
 
 <Note>
-  Manteremos suporte para versões MAJOR por no mínimo 12 meses após o lançamento de uma nova versão.
+  Manteremos suporte para versões MAJOR por no mínimo 12 meses após o lançamento de uma nova versão major.
 </Note>
+
+## Próximos Lançamentos
+
+<Accordion title="Planejado para v1.3.0 - Fevereiro 2026" icon="calendar">
+  
+  #### Em Desenvolvimento
+  
+  - **Webhooks**: Notificações em tempo real de eventos importantes
+  - **Batch Operations**: Operações em lote para múltiplos recursos
+  - **GraphQL API**: API alternativa com GraphQL para queries flexíveis
+  - **SDKs Oficiais**: Bibliotecas para Node.js, Python e PHP
+  
+</Accordion>
 
 ## Deprecação
 
 Quando um recurso for descontinuado:
 
-1. **Anúncio**: Notificação com 6 meses de antecedência
+1. **Anúncio**: Notificação com **6 meses** de antecedência via email e changelog
 2. **Marcação**: O recurso é marcado como `deprecated` na documentação
-3. **Avisos**: Headers `Deprecation` são adicionados às respostas
-4. **Remoção**: O recurso é removido após o período de transição
+3. **Avisos**: Headers `Deprecation` e `Sunset` adicionados às respostas
+4. **Período de Transição**: Mínimo de 6 meses para migração
+5. **Remoção**: O recurso é removido após o período de transição
 
 ### Recursos Deprecados Atualmente
 
-<Warning>
-  Nenhum recurso está atualmente marcado para deprecação.
-</Warning>
+<Check>
+  Nenhum recurso está atualmente marcado para deprecação. Todos os endpoints estão ativos e suportados!
+</Check>
 
 ## Fique Atualizado
 
