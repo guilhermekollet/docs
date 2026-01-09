@@ -1,0 +1,226 @@
+---
+title: "Status da Assinatura"
+api: "GET /subscriptions/status"
+description: "Retorna informações detalhadas sobre a assinatura atual do usuário."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint fornece informações completas sobre o plano e assinatura ativa do usuário, incluindo limites, uso atual, data de renovação e status de pagamento.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="subscription" type="object">
+  Detalhes da assinatura ativa.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="id" type="string">
+      ID da assinatura no Stripe.
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Status da assinatura (active, past_due, canceled, incomplete).
+    </ResponseField>
+    
+    <ResponseField name="current_period_start" type="string">
+      Início do período atual (ISO 8601).
+    </ResponseField>
+    
+    <ResponseField name="current_period_end" type="string">
+      Fim do período atual/renovação (ISO 8601).
+    </ResponseField>
+    
+    <ResponseField name="cancel_at_period_end" type="boolean">
+      Se a assinatura será cancelada no fim do período.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="plan" type="object">
+  Informações do plano contratado.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="name" type="string">
+      Nome do plano (Free, Basic, Professional, Enterprise).
+    </ResponseField>
+    
+    <ResponseField name="interval" type="string">
+      Intervalo de cobrança (month, year).
+    </ResponseField>
+    
+    <ResponseField name="amount" type="number">
+      Valor da assinatura em centavos.
+    </ResponseField>
+    
+    <ResponseField name="currency" type="string">
+      Moeda (BRL, USD, etc).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="limits" type="object">
+  Limites do plano.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="accounts" type="number">
+      Limite de contas do Facebook.
+    </ResponseField>
+    
+    <ResponseField name="monitors" type="number">
+      Limite de monitores.
+    </ResponseField>
+    
+    <ResponseField name="credits_monthly" type="number">
+      Créditos mensais inclusos.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="usage" type="object">
+  Uso atual dos recursos.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="accounts_used" type="number">
+      Contas do Facebook em uso.
+    </ResponseField>
+    
+    <ResponseField name="monitors_used" type="number">
+      Monitores criados.
+    </ResponseField>
+    
+    <ResponseField name="credits_used" type="number">
+      Créditos consumidos no período.
+    </ResponseField>
+    
+    <ResponseField name="credits_remaining" type="number">
+      Créditos disponíveis até o fim do período.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.monitora.com/subscriptions/status \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.monitora.com/subscriptions/status',
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/subscriptions/status"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "subscription": {
+    "id": "sub_1234567890",
+    "status": "active",
+    "current_period_start": "2025-01-01T00:00:00.000Z",
+    "current_period_end": "2025-02-01T00:00:00.000Z",
+    "cancel_at_period_end": false
+  },
+  "plan": {
+    "name": "Professional",
+    "interval": "month",
+    "amount": 9900,
+    "currency": "BRL"
+  },
+  "limits": {
+    "accounts": 10,
+    "monitors": 50,
+    "credits_monthly": 5000
+  },
+  "usage": {
+    "accounts_used": 3,
+    "monitors_used": 12,
+    "credits_used": 1250,
+    "credits_remaining": 3750
+  }
+}
+```
+
+</ResponseExample>
+
+## Status da Assinatura
+
+<AccordionGroup>
+  <Accordion title="active" icon="check">
+    Assinatura ativa e em dia. Todos os recursos estão disponíveis.
+  </Accordion>
+
+  <Accordion title="past_due" icon="clock">
+    Pagamento atrasado. Os recursos podem ser limitados. Atualize o método de pagamento.
+  </Accordion>
+
+  <Accordion title="canceled" icon="xmark">
+    Assinatura cancelada. O acesso será mantido até o fim do período pago.
+  </Accordion>
+
+  <Accordion title="incomplete" icon="circle-pause">
+    Assinatura iniciada mas pagamento não concluído. Complete o processo de checkout.
+  </Accordion>
+</AccordionGroup>
+
+## Casos de Uso
+
+<Card title="Dashboard de Conta" icon="chart-pie">
+  Exiba informações da assinatura no dashboard do usuário para transparência total.
+</Card>
+
+<Card title="Alertas de Limite" icon="bell">
+  Monitore o uso vs. limites e envie alertas quando o usuário estiver próximo do limite.
+</Card>
+
+<Card title="Upgrade Proativo" icon="rocket">
+  Sugira upgrade do plano quando o usuário atingir 80% dos limites regularmente.
+</Card>
+
+## Notas Importantes
+
+<Info>
+  A data `current_period_end` indica quando a próxima cobrança ocorrerá (para planos ativos) ou quando o acesso expirará (para planos cancelados).
+</Info>
+
+<Warning>
+  Se `cancel_at_period_end` for `true`, a assinatura será cancelada automaticamente na data de renovação. O usuário não será cobrado novamente.
+</Warning>
+
+<Tip>
+  Use o campo `credits_remaining` para exibir uma barra de progresso do consumo de créditos no período.
+</Tip>

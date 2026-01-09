@@ -1,0 +1,164 @@
+---
+title: "Listar AdAccounts Consolidadas"
+api: "GET /accounts/me/adaccounts"
+description: "Lista todas as contas de anúncios (AdAccounts) de todas as contas do Facebook do usuário."
+auth: "bearer"
+---
+
+## Descrição
+
+Retorna todas as AdAccounts de TODAS as contas do Facebook do usuário consolidadas em uma única resposta. Cada AdAccount inclui informações sobre o negócio associado, moeda e status.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="search" type="string">
+  Termo de busca para filtrar contas (ex: "Minha Empresa").
+  
+  **Exemplo:** `Vendas SP`
+</ParamField>
+
+<ParamField query="searchBy" type="string" default="name">
+  Campo para buscar: "name" (padrão) ou "id".
+  
+  **Valores aceitos:** `name`, `id`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="data" type="array">
+  Array contendo as AdAccounts encontradas.
+  
+  <Expandable title="Objeto AdAccount">
+    <ResponseField name="id" type="string">
+      ID da conta de anúncios (formato: act_123456789).
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Nome da conta de anúncios.
+    </ResponseField>
+    
+    <ResponseField name="business" type="string">
+      ID do negócio associado.
+    </ResponseField>
+    
+    <ResponseField name="business_name" type="string">
+      Nome do negócio.
+    </ResponseField>
+    
+    <ResponseField name="currency" type="string">
+      Código da moeda (ex: BRL, USD).
+    </ResponseField>
+    
+    <ResponseField name="account_status" type="number">
+      Status da conta (1 = ativa).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="paging" type="object">
+  Informações de paginação.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="has_next" type="boolean">
+      Indica se há próxima página.
+    </ResponseField>
+    
+    <ResponseField name="has_previous" type="boolean">
+      Indica se há página anterior.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="count" type="number">
+  Total de AdAccounts encontradas.
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.monitora.com/accounts/me/adaccounts?search=Vendas&searchBy=name' \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  search: 'Vendas',
+  searchBy: 'name'
+});
+
+const response = await fetch(
+  `https://api.monitora.com/accounts/me/adaccounts?${params}`,
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/accounts/me/adaccounts"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+params = {
+    "search": "Vendas",
+    "searchBy": "name"
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "data": [
+    {
+      "id": "act_123456789",
+      "name": "Minha Empresa - Ads",
+      "business": "987654321",
+      "business_name": "Minha Empresa Ltd",
+      "currency": "BRL",
+      "account_status": 1
+    }
+  ],
+  "paging": {
+    "has_next": false,
+    "has_previous": false
+  },
+  "count": 1
+}
+```
+
+```json Erro - Nenhuma Conta (404)
+{
+  "statusCode": 404,
+  "message": "Nenhuma conta do Facebook encontrada. Cadastre uma conta primeiro.",
+  "error": "Not Found"
+}
+```
+
+</ResponseExample>
+
+<Tip>
+  Use o parâmetro `searchBy=id` quando souber o ID exato da conta que procura para uma busca mais rápida.
+</Tip>

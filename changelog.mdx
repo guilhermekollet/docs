@@ -1,0 +1,237 @@
+---
+title: 'Changelog'
+description: 'Acompanhe todas as mudanças e atualizações da API'
+---
+
+## 2026
+
+### Janeiro
+
+<Accordion title="v1.3.0 - 9 de Janeiro, 2026" icon="rocket">
+  
+  #### 🎉 Novos Recursos
+  
+  - **Webhooks aprimorados**: Adicionado suporte para eventos de créditos
+  - **Batch operations**: Novo endpoint para operações em lote
+  - **Filtros avançados**: Suporte a queries complexas com operadores AND/OR
+  
+  #### 🔧 Melhorias
+  
+  - Performance 30% mais rápida em endpoints de listagem
+  - Paginação otimizada para grandes datasets
+  - Cache aprimorado para reduzir latência
+  
+  #### 🐛 Correções
+  
+  - Corrigido problema com filtros de data em `/campaigns`
+  - Resolvido erro de timeout em requisições grandes
+  - Ajustado comportamento de rate limiting
+  
+  #### ⚠️ Mudanças Importantes
+  
+  <Warning>
+    O campo `status` em campanhas agora retorna valores em snake_case (`in_progress` em vez de `inProgress`)
+  </Warning>
+  
+</Accordion>
+
+### Dezembro 2025
+
+<Accordion title="v1.2.5 - 15 de Dezembro, 2025" icon="wrench">
+  
+  #### 🔧 Melhorias
+  
+  - Adicionado suporte para OAuth 2.0 PKCE
+  - Melhorias na validação de dados de entrada
+  - Documentação expandida com mais exemplos
+  
+  #### 🐛 Correções
+  
+  - Corrigido erro ao criar monitores com múltiplas condições
+  - Resolvido problema de encoding em campos de texto
+  
+</Accordion>
+
+<Accordion title="v1.2.0 - 1 de Dezembro, 2025" icon="star">
+  
+  #### 🎉 Novos Recursos
+  
+  - **SmartLinks**: Novo recurso para criação de links inteligentes
+  - **Grupos**: Endpoint para gerenciamento de grupos de usuários
+  - **API de Incidentes**: Gerencie incidentes programaticamente
+  
+  #### 🔧 Melhorias
+  
+  - Rate limits aumentados para planos Pro e Enterprise
+  - Novo campo `metadata` em todos os recursos principais
+  - Suporte a timestamps com precisão de milissegundos
+  
+</Accordion>
+
+## 2025
+
+### Novembro
+
+<Accordion title="v1.1.5 - 20 de Novembro, 2025" icon="bug">
+  
+  #### 🐛 Correções
+  
+  - Corrigido erro 500 ao deletar contas com campanhas ativas
+  - Resolvido problema de validação em campos opcionais
+  - Ajustado comportamento de paginação em listas vazias
+  
+</Accordion>
+
+<Accordion title="v1.1.0 - 5 de Novembro, 2025" icon="code">
+  
+  #### 🎉 Novos Recursos
+  
+  - **Webhooks**: Implementação inicial de webhooks
+  - **Filtros de data**: Suporte para filtros `created_after` e `created_before`
+  - **Expansão de recursos**: Parâmetro `expand` para incluir recursos relacionados
+  
+  #### 🔧 Melhorias
+  
+  - Headers de rate limit mais informativos
+  - Mensagens de erro mais descritivas
+  - Suporte a compressão gzip
+  
+  #### 📚 Documentação
+  
+  - Adicionados guias de melhores práticas
+  - Exemplos de código em 5 linguagens
+  - Tutorial de início rápido
+  
+</Accordion>
+
+### Outubro
+
+<Accordion title="v1.0.5 - 18 de Outubro, 2025" icon="shield">
+  
+  #### 🔒 Segurança
+  
+  - Implementado rotação automática de chaves antigas
+  - Adicionado suporte para escopos granulares
+  - Melhorias na validação de tokens OAuth
+  
+  #### 🐛 Correções
+  
+  - Corrigido vazamento de memória em processamento de imagens
+  - Resolvido problema de race condition em operações concorrentes
+  
+</Accordion>
+
+<Accordion title="v1.0.0 - 1 de Outubro, 2025" icon="flag-checkered">
+  
+  #### 🎉 Lançamento Oficial
+  
+  Primeira versão estável da API com recursos principais:
+  
+  - ✅ Gerenciamento de Contas
+  - ✅ Campanhas
+  - ✅ Monitores
+  - ✅ Créditos
+  - ✅ Autenticação com API Keys
+  - ✅ Documentação completa
+  - ✅ SDKs para JavaScript, Python e PHP
+  
+  <Check>
+    A API está agora oficialmente em produção e pronta para uso!
+  </Check>
+  
+</Accordion>
+
+## Versões Beta
+
+<Accordion title="v0.9.0 - Setembro 2025" icon="flask">
+  
+  #### Beta Público
+  
+  - Lançamento da versão beta pública
+  - Feedback da comunidade incorporado
+  - Testes de carga e otimizações
+  
+</Accordion>
+
+<Accordion title="v0.5.0 - Agosto 2025" icon="flask">
+  
+  #### Beta Privado
+  
+  - Início do programa de beta privado
+  - Primeiros parceiros testando a API
+  - Ajustes baseados em feedback inicial
+  
+</Accordion>
+
+## Política de Versionamento
+
+Seguimos o [Versionamento Semântico](https://semver.org/):
+
+- **MAJOR** (v2.0.0): Mudanças incompatíveis com versões anteriores
+- **MINOR** (v1.1.0): Novos recursos mantendo compatibilidade
+- **PATCH** (v1.0.1): Correções de bugs mantendo compatibilidade
+
+<Note>
+  Manteremos suporte para versões MAJOR por no mínimo 12 meses após o lançamento de uma nova versão.
+</Note>
+
+## Deprecação
+
+Quando um recurso for descontinuado:
+
+1. **Anúncio**: Notificação com 6 meses de antecedência
+2. **Marcação**: O recurso é marcado como `deprecated` na documentação
+3. **Avisos**: Headers `Deprecation` são adicionados às respostas
+4. **Remoção**: O recurso é removido após o período de transição
+
+### Recursos Deprecados Atualmente
+
+<Warning>
+  Nenhum recurso está atualmente marcado para deprecação.
+</Warning>
+
+## Fique Atualizado
+
+<CardGroup cols={2}>
+  <Card
+    title="RSS Feed"
+    icon="rss"
+    href="/changelog.rss"
+  >
+    Assine o feed RSS para atualizações automáticas
+  </Card>
+  <Card
+    title="Newsletter"
+    icon="envelope"
+    href="https://example.com/newsletter"
+  >
+    Receba resumos mensais por email
+  </Card>
+  <Card
+    title="Status Page"
+    icon="signal"
+    href="https://status.example.com"
+  >
+    Monitore status e incidentes em tempo real
+  </Card>
+  <Card
+    title="Blog"
+    icon="blog"
+    href="https://blog.example.com"
+  >
+    Leia artigos detalhados sobre novos recursos
+  </Card>
+</CardGroup>
+
+## Suporte a Versões
+
+| Versão | Status | Lançamento | Fim do Suporte |
+|--------|--------|------------|----------------|
+| v1.3.x | ✅ Atual | Jan 2026 | - |
+| v1.2.x | ✅ Suportado | Dez 2025 | Dez 2026 |
+| v1.1.x | ✅ Suportado | Nov 2025 | Nov 2026 |
+| v1.0.x | ✅ Suportado | Out 2025 | Out 2026 |
+
+<Tip>
+  Sempre use a versão mais recente para aproveitar os últimos recursos e melhorias de segurança.
+</Tip>

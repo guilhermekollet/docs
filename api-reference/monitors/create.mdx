@@ -1,0 +1,150 @@
+---
+title: "Criar Monitor"
+api: "POST /monitors"
+description: "Cria uma nova instância de monitoramento (Agente)."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint permite criar uma nova instância de monitor (também chamado de "Agente") na plataforma. Os monitores são utilizados para rastrear e gerenciar grupos do WhatsApp associados a campanhas.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Corpo da Requisição
+
+<ParamField body="name" type="string" required>
+  Nome identificador do monitor.
+  
+  **Exemplo:** `Monitor Principal - Campanha Janeiro`
+</ParamField>
+
+<ParamField body="description" type="string">
+  Descrição opcional do monitor e sua finalidade.
+  
+  **Exemplo:** `Monitor para grupos da campanha de vendas de Janeiro`
+</ParamField>
+
+<ParamField body="status" type="boolean" default="true">
+  Status inicial do monitor (ativo/inativo).
+  
+  **Padrão:** `true`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="id" type="string">
+  ID único do monitor criado (UUID).
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Nome do monitor.
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Descrição do monitor.
+</ResponseField>
+
+<ResponseField name="status" type="boolean">
+  Status do monitor.
+</ResponseField>
+
+<ResponseField name="user_id" type="string">
+  ID do usuário proprietário.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  Data de criação (ISO 8601).
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitora.com/monitors \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "Monitor Principal",
+    "description": "Monitor para campanha de vendas",
+    "status": true
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.monitora.com/monitors', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer SEU_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Monitor Principal',
+    description: 'Monitor para campanha de vendas',
+    status: true
+  })
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/monitors"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN",
+    "Content-Type": "application/json"
+}
+payload = {
+    "name": "Monitor Principal",
+    "description": "Monitor para campanha de vendas",
+    "status": True
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (201)
+{
+  "id": "b0cd8450-bd1b-486e-87b3-8eeeb96436f2",
+  "name": "Monitor Principal",
+  "description": "Monitor para campanha de vendas",
+  "status": true,
+  "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "created_at": "2025-01-09T10:00:00.000Z"
+}
+```
+
+```json Erro - Não Autorizado (401)
+{
+  "statusCode": 401,
+  "message": "Token inválido ou não fornecido",
+  "error": "Unauthorized"
+}
+```
+
+</ResponseExample>
+
+## Notas Importantes
+
+<Info>
+  Após criar um monitor, você pode associá-lo a grupos do WhatsApp para começar o rastreamento.
+</Info>
+
+<Tip>
+  Use nomes descritivos para facilitar a identificação dos monitores, especialmente se você gerenciar múltiplas campanhas.
+</Tip>

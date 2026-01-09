@@ -1,0 +1,391 @@
+---
+title: 'Créditos'
+description: 'Gerencie e acompanhe o consumo de créditos da sua conta'
+---
+
+## Visão Geral
+
+A API de Créditos permite monitorar o consumo, consultar histórico e analisar gastos de créditos em diferentes operações da plataforma.
+
+<CardGroup cols={2}>
+  <Card
+    title="Histórico de Consumo"
+    icon="clock-rotate-left"
+    href="/api-reference/credits/history"
+  >
+    Veja todas as transações de créditos
+  </Card>
+  <Card
+    title="Breakdown por Operação"
+    icon="chart-pie"
+    href="/api-reference/credits/breakdown"
+  >
+    Analise gastos por tipo de operação
+  </Card>
+</CardGroup>
+
+## Como Funcionam os Créditos
+
+Cada operação na API consome uma quantidade específica de créditos:
+
+| Operação | Créditos | Descrição |
+|----------|----------|-----------|
+| **Validação de Link** | 1 | Validar link do WhatsApp |
+| **Monitoramento (5min)** | 288/dia | Verificação a cada 5 minutos |
+| **Monitoramento (1h)** | 24/dia | Verificação a cada hora |
+| **Envio de Webhook** | 0.1 | Notificação via webhook |
+| **Análise de Atividade** | 0.5 | Consulta de atividades |
+
+## Casos de Uso
+
+### Dashboard de Consumo
+
+```javascript
+async function getCreditsDashboard() {
+  // Buscar histórico dos últimos 30 dias
+  const history = await fetch(
+    'https://api.monitoragrupo.com/v1/credits/history?period=30d',
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  ).then(r => r.json());
+  
+  // Buscar breakdown por operação
+  const breakdown = await fetch(
+    'https://api.monitoragrupo.com/v1/credits/breakdown?period=30d',
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  ).then(r => r.json());
+  
+  return {
+    totalUsed: history.total_credits_used,
+    remaining: history.credits_remaining,
+    dailyAverage: history.total_credits_used / 30,
+    topOperations: breakdown.by_operation.slice(0, 5),
+    trend: history.daily_usage
+  };
+}
+
+// Uso
+const dashboard = await getCreditsDashboard();
+console.log(`💳 Créditos restantes: ${dashboard.remaining.toLocaleString()}`);
+console.log(`📊 Média diária: ${dashboard.dailyAverage.toFixed(0)} créditos`);
+console.log(`🔝 Top operação: ${dashboard.topOperations[0].name}`);
+```
+
+### Sistema de Alertas de Consumo
+
+```python
+import requests
+from datetime import datetime
+
+class CreditMonitor:
+    def __init__(self, auth_token):
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def check_credit_levels(self):
+        """Verifica níveis de crédito e emite alertas"""
+        response = requests.get(
+            f'{self.base_url}/credits/history',
+            headers=self.headers
+        )
+        
+        data = response.json()
+        remaining = data['credits_remaining']
+        total = data['credits_total']
+        percent_remaining = (remaining / total) * 100
+        
+        if percent_remaining <= 10:
+            self.send_critical_alert(remaining, total)
+        elif percent_remaining <= 25:
+            self.send_warning_alert(remaining, total)
+        
+        return {
+            'remaining': remaining,
+            'total': total,
+            'percent': percent_remaining,
+            'status': self.get_status(percent_remaining)
+        }
+    
+    def get_status(self, percent):
+        if percent > 50:
+            return '🟢 Saudável'
+        elif percent > 25:
+            return '🟡 Atenção'
+        elif percent > 10:
+            return '🟠 Baixo'
+        else:
+            return '🔴 Crítico'
+    
+    def predict_depletion_date(self):
+        """Prevê quando os créditos irão acabar"""
+        response = requests.get(
+            f'{self.base_url}/credits/history?period=7d',
+            headers=self.headers
+        )
+        
+        data = response.json()
+        daily_usage = data['total_credits_used'] / 7
+        remaining = data['credits_remaining']
+        
+        days_remaining = remaining / daily_usage if daily_usage > 0 else float('inf')
+        
+        return {
+            'daily_average': daily_usage,
+            'days_remaining': round(days_remaining, 1),
+            'depletion_date': (datetime.now() + timedelta(days=days_remaining)).date()
+        }
+    
+    def send_critical_alert(self, remaining, total):
+        print(f"🚨 ALERTA CRÍTICO: Apenas {remaining} créditos restantes ({(remaining/total)*100:.1f}%)")
+        # Integrar com Slack, email, SMS, etc.
+    
+    def send_warning_alert(self, remaining, total):
+        print(f"⚠️ AVISO: {remaining} créditos restantes ({(remaining/total)*100:.1f}%)")
+
+# Uso
+monitor = CreditMonitor('YOUR_TOKEN')
+
+status = monitor.check_credit_levels()
+print(f"Status: {status['status']}")
+print(f"Restante: {status['remaining']:,} de {status['total']:,} ({status['percent']:.1f}%)")
+
+prediction = monitor.predict_depletion_date()
+print(f"\n📅 Previsão de esgotamento:")
+print(f"   Consumo diário médio: {prediction['daily_average']:.0f} créditos")
+print(f"   Dias restantes: {prediction['days_remaining']}")
+print(f"   Data prevista: {prediction['depletion_date']}")
+```
+
+### Análise de Custos por Campanha
+
+```javascript
+class CreditAnalytics {
+  constructor(authToken) {
+    this.token = authToken;
+    this.baseUrl = 'https://api.monitoragrupo.com/v1';
+  }
+  
+  async getCampaignCosts(period = '30d') {
+    const breakdown = await fetch(
+      `${this.baseUrl}/credits/breakdown?period=${period}`,
+      { headers: { 'Authorization': `Bearer ${this.token}` } }
+    ).then(r => r.json());
+    
+    // Agrupar por campanha
+    const campaignCosts = {};
+    
+    for (const item of breakdown.by_resource) {
+      const campaign = item.campaign_id;
+      
+      if (!campaignCosts[campaign]) {
+        campaignCosts[campaign] = {
+          name: item.campaign_name,
+          total_credits: 0,
+          operations: {}
+        };
+      }
+      
+      campaignCosts[campaign].total_credits += item.credits_used;
+      campaignCosts[campaign].operations[item.operation] = item.credits_used;
+    }
+    
+    // Calcular ROI (exemplo: assumindo conversões conhecidas)
+    for (const campaignId in campaignCosts) {
+      const campaign = campaignCosts[campaignId];
+      const conversions = await this.getConversions(campaignId);
+      
+      campaign.conversions = conversions;
+      campaign.cost_per_conversion = campaign.total_credits / conversions;
+      campaign.efficiency_score = this.calculateEfficiency(campaign);
+    }
+    
+    return Object.values(campaignCosts).sort((a, b) => 
+      b.efficiency_score - a.efficiency_score
+    );
+  }
+  
+  calculateEfficiency(campaign) {
+    // Score de eficiência: conversões / créditos gastos * 1000
+    return (campaign.conversions / campaign.total_credits) * 1000;
+  }
+  
+  async getConversions(campaignId) {
+    // Buscar dados de conversão (implementar conforme sua API)
+    return 150; // Exemplo
+  }
+  
+  async generateOptimizationReport() {
+    const campaigns = await this.getCampaignCosts('30d');
+    
+    console.log('\n📊 RELATÓRIO DE OTIMIZAÇÃO DE CRÉDITOS\n');
+    console.log('='.repeat(70));
+    
+    campaigns.forEach((campaign, index) => {
+      console.log(`\n${index + 1}. ${campaign.name}`);
+      console.log(`   Créditos usados: ${campaign.total_credits.toLocaleString()}`);
+      console.log(`   Conversões: ${campaign.conversions}`);
+      console.log(`   Custo/Conversão: ${campaign.cost_per_conversion.toFixed(2)} créditos`);
+      console.log(`   Score de eficiência: ${campaign.efficiency_score.toFixed(2)}`);
+      
+      // Recomendações
+      if (campaign.cost_per_conversion > 10) {
+        console.log('   ⚠️ Recomendação: Otimizar frequência de monitoramento');
+      }
+      if (campaign.efficiency_score < 5) {
+        console.log('   ⚠️ Recomendação: Revisar targeting da campanha');
+      }
+    });
+    
+    return campaigns;
+  }
+}
+
+// Uso
+const analytics = new CreditAnalytics('YOUR_TOKEN');
+await analytics.generateOptimizationReport();
+```
+
+## Otimização de Consumo
+
+### Recomendações por Plano
+
+<Tabs>
+  <Tab title="Plano Free (1.000 créditos/mês)">
+    - **Monitores**: Máximo 2-3 grupos com intervalo de 1 hora
+    - **Validações**: Apenas para links novos (não revalidar)
+    - **Análises**: Consultar atividades semanalmente
+    - **Webhooks**: Usar com moderação
+  </Tab>
+  
+  <Tab title="Plano Pro (10.000 créditos/mês)">
+    - **Monitores**: 10-15 grupos com intervalo de 15 minutos
+    - **Validações**: Revalidar links a cada 7 dias
+    - **Análises**: Consultar atividades diariamente
+    - **Webhooks**: Configurar para eventos importantes
+  </Tab>
+  
+  <Tab title="Plano Enterprise (Ilimitado)">
+    - **Monitores**: Sem restrições, use intervalos de 5 minutos
+    - **Validações**: Revalidar links diariamente
+    - **Análises**: Consultas em tempo real
+    - **Webhooks**: Configurar para todos os eventos
+  </Tab>
+</Tabs>
+
+### Estratégias de Economia
+
+<AccordionGroup>
+  <Accordion title="Ajustar Frequência de Monitoramento">
+    Grupos estáveis não precisam ser verificados a cada 5 minutos. Use intervalos de 1 hora para grupos regulares.
+  </Accordion>
+  
+  <Accordion title="Cache de Validações">
+    Armazene resultados de validações e reutilize por 24-48 horas antes de revalidar.
+  </Accordion>
+  
+  <Accordion title="Batch Operations">
+    Agrupe operações quando possível para reduzir overhead de requisições.
+  </Accordion>
+  
+  <Accordion title="Desativar Monitores Inativos">
+    Pause monitores de campanhas finalizadas ou em stand-by.
+  </Accordion>
+</AccordionGroup>
+
+## Relatórios Prontos
+
+### Consumo Diário
+
+```bash
+GET /credits/history?period=1d&group_by=hour
+```
+
+### Top Operações do Mês
+
+```bash
+GET /credits/breakdown?period=30d&sort=credits_used&limit=10
+```
+
+### Tendência Semanal
+
+```bash
+GET /credits/history?period=7d&group_by=day
+```
+
+## Alertas Automáticos
+
+Configure notificações automáticas baseadas em thresholds:
+
+```json
+{
+  "alerts": {
+    "low_credits": {
+      "threshold": 1000,
+      "notify": ["email", "webhook"],
+      "message": "Créditos abaixo de 1.000"
+    },
+    "high_usage": {
+      "daily_threshold": 500,
+      "notify": ["slack"],
+      "message": "Consumo diário acima do normal"
+    },
+    "depletion_warning": {
+      "days_remaining": 7,
+      "notify": ["email", "sms"],
+      "message": "Créditos acabarão em 7 dias"
+    }
+  }
+}
+```
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Créditos expiram?">
+    Créditos do plano mensal expiram ao final do período de faturamento. Planos anuais têm validade de 12 meses.
+  </Accordion>
+  
+  <Accordion title="Posso transferir créditos entre contas?">
+    Não. Créditos são vinculados à conta e não podem ser transferidos.
+  </Accordion>
+  
+  <Accordion title="O que acontece quando os créditos acabam?">
+    Monitores são pausados automaticamente. Você ainda pode acessar a API para consultas básicas, mas operações que consomem créditos ficam bloqueadas até recarga.
+  </Accordion>
+  
+  <Accordion title="Como recarregar créditos?">
+    Acesse o painel de billing em dashboard.monitoragrupo.com ou faça upgrade do plano.
+  </Accordion>
+</AccordionGroup>
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="Accounts"
+    icon="user"
+    href="/api-reference/accounts/overview"
+  >
+    Veja informações gerais da conta
+  </Card>
+  <Card
+    title="Subscriptions"
+    icon="credit-card"
+    href="/api-reference/subscriptions/overview"
+  >
+    Gerencie sua assinatura e planos
+  </Card>
+  <Card
+    title="Monitors"
+    icon="radar"
+    href="/api-reference/monitors/overview"
+  >
+    Otimize consumo de monitores
+  </Card>
+  <Card
+    title="SmartLinks"
+    icon="link"
+    href="/api-reference/smartlinks/overview"
+  >
+    Gerencie validações de links
+  </Card>
+</CardGroup>

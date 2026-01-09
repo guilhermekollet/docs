@@ -1,0 +1,523 @@
+---
+title: 'Atualizar Detalhes da Campanha'
+api: 'PUT /smartlinks/{shortCodeCampaign}/details'
+description: 'Atualiza informações do grupo WhatsApp associado a uma campanha'
+---
+
+## Descrição
+
+Atualiza os detalhes do grupo do WhatsApp vinculado a uma campanha SmartLink. Este endpoint é especialmente útil para:
+- Rotacionar grupos quando atingem capacidade máxima
+- Atualizar informações de um grupo existente
+- Corrigir dados de grupos
+- Gerenciar múltiplos grupos em uma campanha
+
+<Note>
+  Este endpoint modifica apenas os detalhes do grupo ativo. Para adicionar novos grupos, use o endpoint de criação de grupos.
+</Note>
+
+## Autenticação
+
+<CodeGroup>
+```bash Bearer Token
+Authorization: Bearer seu_token_jwt
+```
+
+```bash API Token  
+x-api-token: seu_api_token
+```
+</CodeGroup>
+
+## Path Parameters
+
+<ParamField path="shortCodeCampaign" type="string" required>
+  Código curto identificador único da campanha.
+  
+  **Formato**: 6-8 caracteres alfanuméricos
+  
+  **Exemplo**: `ABC123`, `3M8NZ5`
+</ParamField>
+
+## Body Parameters
+
+<ParamField body="group_id" type="string" required>
+  ID único do grupo do WhatsApp (UUID).
+  
+  Este ID é usado internamente para rastreamento e deve ser único por grupo.
+  
+  **Formato**: UUID v4
+  
+  **Exemplo**: `cc2be923-9984-4089-9dbd-9206ece0b847`
+</ParamField>
+
+<ParamField body="invite_code" type="string" required>
+  Código de convite do grupo do WhatsApp.
+  
+  Este é o código que aparece após `chat.whatsapp.com/` na URL do convite.
+  
+  **Formato**: String alfanumérica de 22 caracteres
+  
+  **Exemplo**: `FJsMdw8ozjv7TkYhD6hhWz`
+</ParamField>
+
+<ParamField body="group_name" type="string" required>
+  Nome descritivo do grupo do WhatsApp.
+  
+  Usado para identificação e relatórios.
+  
+  **Recomendação**: Use nomes descritivos e numerados para múltiplos grupos
+  
+  **Exemplo**: `Promoção Relâmpago #01`, `Black Friday - Grupo 2`
+</ParamField>
+
+<ParamField body="max_capacity" type="number">
+  Capacidade máxima do grupo (opcional).
+  
+  **Padrão**: 256 (limite do WhatsApp para grupos)
+  
+  **Valores possíveis**: 1-1024 (para comunidades)
+</ParamField>
+
+<ParamField body="is_active" type="boolean">
+  Define se este grupo está ativo na rotação (opcional).
+  
+  **Padrão**: `true`
+  
+  Quando `false`, o grupo não receberá novos redirecionamentos.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indica se a atualização foi bem-sucedida
+</ResponseField>
+
+<ResponseField name="campaign" type="object" required>
+  Dados atualizados da campanha
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="short_code" type="string">
+      Código curto da campanha
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Nome da campanha
+    </ResponseField>
+    <ResponseField name="updated_at" type="string">
+      Data da última atualização
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="group" type="object" required>
+  Detalhes do grupo atualizado
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="group_id" type="string">
+      ID do grupo
+    </ResponseField>
+    <ResponseField name="group_name" type="string">
+      Nome do grupo
+    </ResponseField>
+    <ResponseField name="invite_code" type="string">
+      Código de convite
+    </ResponseField>
+    <ResponseField name="full_url" type="string">
+      URL completa do convite
+    </ResponseField>
+    <ResponseField name="is_active" type="boolean">
+      Status de ativação
+    </ResponseField>
+    <ResponseField name="max_capacity" type="number">
+      Capacidade máxima
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request PUT \
+  --url https://api.example.com/v1/smartlinks/ABC123/details \
+  --header 'Authorization: Bearer YOUR_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "group_id": "cc2be923-9984-4089-9dbd-9206ece0b847",
+    "invite_code": "FJsMdw8ozjv7TkYhD6hhWz",
+    "group_name": "Promoção Relâmpago #01",
+    "max_capacity": 256,
+    "is_active": true
+  }'
+```
+
+```javascript JavaScript
+const shortCode = 'ABC123';
+
+const response = await fetch(
+  `https://api.example.com/v1/smartlinks/${shortCode}/details`,
+  {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      group_id: 'cc2be923-9984-4089-9dbd-9206ece0b847',
+      invite_code: 'FJsMdw8ozjv7TkYhD6hhWz',
+      group_name: 'Promoção Relâmpago #01',
+      max_capacity: 256,
+      is_active: true
+    })
+  }
+);
+
+const result = await response.json();
+console.log('Grupo atualizado:', result.group.group_name);
+```
+
+```python Python
+import requests
+
+short_code = 'ABC123'
+
+response = requests.put(
+    f'https://api.example.com/v1/smartlinks/{short_code}/details',
+    headers={
+        'Authorization': 'Bearer YOUR_TOKEN',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'group_id': 'cc2be923-9984-4089-9dbd-9206ece0b847',
+        'invite_code': 'FJsMdw8ozjv7TkYhD6hhWz',
+        'group_name': 'Promoção Relâmpago #01',
+        'max_capacity': 256,
+        'is_active': True
+    }
+)
+
+result = response.json()
+print(f"Grupo atualizado: {result['group']['group_name']}")
+```
+
+```php PHP
+<?php
+$shortCode = 'ABC123';
+
+$data = [
+    'group_id' => 'cc2be923-9984-4089-9dbd-9206ece0b847',
+    'invite_code' => 'FJsMdw8ozjv7TkYhD6hhWz',
+    'group_name' => 'Promoção Relâmpago #01',
+    'max_capacity' => 256,
+    'is_active' => true
+];
+
+$curl = curl_init();
+curl_setopt_array($curl, [
+  CURLOPT_URL => "https://api.example.com/v1/smartlinks/{$shortCode}/details",
+  CURLOPT_CUSTOMREQUEST => "PUT",
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER => [
+    "Authorization: Bearer YOUR_TOKEN",
+    "Content-Type: application/json"
+  ],
+  CURLOPT_POSTFIELDS => json_encode($data)
+]);
+
+$response = curl_exec($curl);
+$result = json_decode($response, true);
+echo "Grupo atualizado: " . $result['group']['group_name'];
+curl_close($curl);
+?>
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso
+{
+  "success": true,
+  "campaign": {
+    "short_code": "ABC123",
+    "name": "Promoção Black Friday 2026",
+    "updated_at": "2026-01-09T10:35:22.000Z"
+  },
+  "group": {
+    "group_id": "cc2be923-9984-4089-9dbd-9206ece0b847",
+    "group_name": "Promoção Relâmpago #01",
+    "invite_code": "FJsMdw8ozjv7TkYhD6hhWz",
+    "full_url": "https://chat.whatsapp.com/FJsMdw8ozjv7TkYhD6hhWz",
+    "is_active": true,
+    "max_capacity": 256,
+    "current_members": 0,
+    "created_at": "2026-01-09T10:35:22.000Z"
+  }
+}
+```
+
+```json Campanha Não Encontrada
+{
+  "error": {
+    "code": "not_found",
+    "message": "Campanha não encontrada",
+    "status": 404,
+    "details": {
+      "short_code": "INVALID"
+    }
+  }
+}
+```
+
+```json Validação Falhou
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Dados inválidos fornecidos",
+    "status": 400,
+    "details": {
+      "errors": [
+        {
+          "field": "group_id",
+          "message": "Formato de UUID inválido"
+        },
+        {
+          "field": "invite_code",
+          "message": "Código de convite deve ter 22 caracteres"
+        }
+      ]
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Códigos de Status
+
+| Código | Descrição |
+|--------|-----------|
+| `200` | Detalhes atualizados com sucesso |
+| `400` | Dados de entrada inválidos |
+| `401` | Token de autenticação inválido |
+| `404` | Campanha não encontrada |
+| `409` | Conflito - group_id já existe em outra campanha |
+| `429` | Limite de taxa excedido |
+| `500` | Erro interno do servidor |
+
+## Casos de Uso
+
+### Rotação Automática de Grupos
+
+```javascript
+async function rotateGroupWhenFull(shortCode) {
+  // 1. Verificar campanha atual
+  const campaignRes = await fetch(
+    `https://api.example.com/v1/smartlinks?shortCode=${shortCode}`,
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  );
+  
+  const campaign = await campaignRes.json();
+  const activeGroup = campaign.groups.find(g => g.is_active);
+  
+  // 2. Verificar se está cheio (>90% da capacidade)
+  const capacityUsed = activeGroup.current_members / activeGroup.max_members;
+  
+  if (capacityUsed > 0.9) {
+    console.log('⚠️ Grupo próximo do limite, rotacionando...');
+    
+    // 3. Desativar grupo atual
+    await fetch(
+      `https://api.example.com/v1/smartlinks/${shortCode}/details`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer YOUR_TOKEN',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...activeGroup,
+          is_active: false
+        })
+      }
+    );
+    
+    // 4. Ativar próximo grupo
+    const nextGroup = campaign.groups.find(g => !g.is_active);
+    if (nextGroup) {
+      await fetch(
+        `https://api.example.com/v1/smartlinks/${shortCode}/details`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer YOUR_TOKEN',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ...nextGroup,
+            is_active: true
+          })
+        }
+      );
+      
+      console.log('✅ Rotação concluída para:', nextGroup.group_name);
+    } else {
+      console.log('❌ Nenhum grupo disponível para rotação');
+    }
+  }
+}
+```
+
+### Atualizar Grupo com Validação
+
+```python
+import requests
+import uuid
+
+def update_campaign_group(short_code, whatsapp_invite_url, group_name):
+    """
+    Atualiza grupo da campanha com validação prévia do link
+    """
+    # 1. Extrair código do convite
+    invite_code = whatsapp_invite_url.split('/')[-1]
+    
+    # 2. Validar link primeiro
+    validation = requests.post(
+        'https://api.example.com/v1/smartlinks/validate',
+        headers={'Authorization': 'Bearer YOUR_TOKEN'},
+        json={'url': whatsapp_invite_url}
+    )
+    
+    if not validation.json().get('is_valid'):
+        raise ValueError('Link do WhatsApp inválido')
+    
+    # 3. Atualizar campanha
+    response = requests.put(
+        f'https://api.example.com/v1/smartlinks/{short_code}/details',
+        headers={
+            'Authorization': 'Bearer YOUR_TOKEN',
+            'Content-Type': 'application/json'
+        },
+        json={
+            'group_id': str(uuid.uuid4()),
+            'invite_code': invite_code,
+            'group_name': group_name,
+            'is_active': True
+        }
+    )
+    
+    response.raise_for_status()
+    return response.json()
+
+# Uso
+try:
+    result = update_campaign_group(
+        'ABC123',
+        'https://chat.whatsapp.com/FJsMdw8ozjv7TkYhD6hhWz',
+        'Novo Grupo Promoção'
+    )
+    print(f"✅ Grupo atualizado: {result['group']['group_name']}")
+except Exception as e:
+    print(f"❌ Erro: {str(e)}")
+```
+
+### Gerenciar Múltiplos Grupos
+
+```javascript
+class CampaignGroupManager {
+  constructor(shortCode, authToken) {
+    this.shortCode = shortCode;
+    this.authToken = authToken;
+    this.baseUrl = 'https://api.example.com/v1/smartlinks';
+  }
+
+  async getCurrentGroups() {
+    const response = await fetch(
+      `${this.baseUrl}?shortCode=${this.shortCode}`,
+      { headers: { 'Authorization': `Bearer ${this.authToken}` } }
+    );
+    const campaign = await response.json();
+    return campaign.groups;
+  }
+
+  async updateGroup(groupData) {
+    const response = await fetch(
+      `${this.baseUrl}/${this.shortCode}/details`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${this.authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(groupData)
+      }
+    );
+    return await response.json();
+  }
+
+  async addNewGroup(whatsappUrl, groupName) {
+    const inviteCode = whatsappUrl.split('/').pop();
+    const groupId = crypto.randomUUID();
+
+    return await this.updateGroup({
+      group_id: groupId,
+      invite_code: inviteCode,
+      group_name: groupName,
+      is_active: false // Adicionar como inativo
+    });
+  }
+
+  async activateGroup(groupId) {
+    const groups = await this.getCurrentGroups();
+    const group = groups.find(g => g.group_id === groupId);
+    
+    if (!group) throw new Error('Grupo não encontrado');
+
+    return await this.updateGroup({
+      ...group,
+      is_active: true
+    });
+  }
+}
+
+// Uso
+const manager = new CampaignGroupManager('ABC123', 'YOUR_TOKEN');
+
+// Adicionar novo grupo
+await manager.addNewGroup(
+  'https://chat.whatsapp.com/NewGroupCode',
+  'Promoção #03'
+);
+
+// Ativar grupo específico
+await manager.activateGroup('group-uuid-here');
+```
+
+## Notas Importantes
+
+<Warning>
+  **Impacto Imediato**: Alterações neste endpoint afetam imediatamente os redirecionamentos da campanha. Certifique-se de validar o link antes de atualizar.
+</Warning>
+
+<Tip>
+  **Validação Prévia**: Sempre valide o novo link do WhatsApp usando o endpoint `/smartlinks/validate` antes de atualizar os detalhes da campanha.
+</Tip>
+
+<Note>
+  **Group ID Único**: O `group_id` deve ser único em todo o sistema. Use UUIDs v4 para garantir unicidade.
+</Note>
+
+## Melhores Práticas
+
+1. **Validar antes de atualizar**: Sempre use o endpoint de validação primeiro
+2. **Numeração sequencial**: Use nomes como "Grupo #01", "Grupo #02" para facilitar rastreamento
+3. **Monitorar capacidade**: Configure alertas quando grupos atingirem 80-90% da capacidade
+4. **Testar antes de ativar**: Adicione novos grupos como inativos e teste antes de ativar
+5. **Backup de dados**: Mantenha registro dos códigos de convite anteriores
+
+## Webhooks Relacionados
+
+Configure webhooks para ser notificado quando:
+- `campaign.group_updated` - Detalhes do grupo foram atualizados
+- `campaign.group_activated` - Novo grupo foi ativado
+- `campaign.group_deactivated` - Grupo foi desativado
+
+Veja [Webhooks](/webhooks/overview) para mais detalhes.

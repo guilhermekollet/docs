@@ -1,0 +1,207 @@
+---
+title: "Detalhamento de Consumo"
+api: "GET /credits/breakdown"
+description: "Retorna detalhamento do consumo de créditos por recurso e tipo de operação."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint fornece uma visão detalhada do consumo de créditos, agrupando por recurso e tipo de operação, permitindo identificar quais funcionalidades mais consomem créditos.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="limit" type="number" default="10">
+  Limite de registros a retornar.
+  
+  **Exemplo:** `10`
+  
+  **Valores aceitos:** 1-100
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="breakdown" type="array">
+  Array contendo o detalhamento por recurso.
+  
+  <Expandable title="Objeto de Breakdown">
+    <ResponseField name="resource" type="string">
+      Nome do recurso (ex: "smartlinks", "monitors", "api-calls").
+    </ResponseField>
+    
+    <ResponseField name="operation_type" type="string">
+      Tipo de operação realizada.
+    </ResponseField>
+    
+    <ResponseField name="total_credits" type="number">
+      Total de créditos consumidos neste recurso.
+    </ResponseField>
+    
+    <ResponseField name="total_operations" type="number">
+      Número total de operações realizadas.
+    </ResponseField>
+    
+    <ResponseField name="percentage" type="number">
+      Percentual do consumo total.
+    </ResponseField>
+    
+    <ResponseField name="last_used" type="string">
+      Data da última utilização (ISO 8601).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="total" type="object">
+  Totalizadores gerais.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="credits_used" type="number">
+      Total geral de créditos consumidos.
+    </ResponseField>
+    
+    <ResponseField name="operations_count" type="number">
+      Total de operações realizadas.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.monitora.com/credits/breakdown?limit=10' \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  limit: '10'
+});
+
+const response = await fetch(
+  `https://api.monitora.com/credits/breakdown?${params}`,
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/credits/breakdown"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+params = {
+    "limit": 10
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "breakdown": [
+    {
+      "resource": "smartlinks",
+      "operation_type": "validation",
+      "total_credits": 450,
+      "total_operations": 450,
+      "percentage": 65.2,
+      "last_used": "2025-01-09T10:30:00.000Z"
+    },
+    {
+      "resource": "monitors",
+      "operation_type": "insights",
+      "total_credits": 150,
+      "total_operations": 30,
+      "percentage": 21.7,
+      "last_used": "2025-01-09T09:15:00.000Z"
+    },
+    {
+      "resource": "api-calls",
+      "operation_type": "external-fetch",
+      "total_credits": 90,
+      "total_operations": 90,
+      "percentage": 13.1,
+      "last_used": "2025-01-09T08:45:00.000Z"
+    }
+  ],
+  "total": {
+    "credits_used": 690,
+    "operations_count": 570
+  }
+}
+```
+
+</ResponseExample>
+
+## Insights de Uso
+
+<AccordionGroup>
+  <Accordion title="Smartlinks - Validação" icon="link">
+    Cada validação de link do WhatsApp consome **1 crédito**. Use com moderação e implemente cache quando possível.
+  </Accordion>
+
+  <Accordion title="Monitors - Insights" icon="chart-line">
+    Consultas de insights de monitores consomem **5 créditos** por requisição. Agrupe dados quando possível.
+  </Accordion>
+
+  <Accordion title="API Calls - External Fetch" icon="globe">
+    Requisições via proxy consomem **1 crédito** por chamada. Considere fazer batch de URLs.
+  </Accordion>
+</AccordionGroup>
+
+## Otimização de Consumo
+
+<Steps>
+  <Step title="Identifique os Maiores Consumidores">
+    Use o breakdown para identificar quais recursos consomem mais créditos.
+  </Step>
+  
+  <Step title="Implemente Cache">
+    Armazene resultados de validações frequentes para evitar consultas repetidas.
+  </Step>
+  
+  <Step title="Agrupe Operações">
+    Sempre que possível, agrupe múltiplas operações em uma única requisição.
+  </Step>
+  
+  <Step title="Monitore Regularmente">
+    Configure alertas para ser notificado quando o consumo ultrapassar limites.
+  </Step>
+</Steps>
+
+## Notas Importantes
+
+<Info>
+  O breakdown mostra apenas os recursos que foram utilizados. Recursos não utilizados não aparecem na lista.
+</Info>
+
+<Tip>
+  Use o campo `percentage` para criar gráficos de pizza e visualizar a distribuição do consumo.
+</Tip>
+
+<Warning>
+  Créditos consumidos não podem ser reembolsados. Monitore seu uso regularmente para evitar desperdícios.
+</Warning>

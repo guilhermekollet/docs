@@ -1,0 +1,227 @@
+---
+title: "Obter Insights do Monitor"
+api: "GET /monitors/{id}/insights"
+description: "Retorna os grupos associados a um monitor específico com informações detalhadas."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint retorna uma lista paginada de todos os grupos do WhatsApp associados a um monitor específico, incluindo informações sobre participantes, status de conexão e outros insights importantes.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Path
+
+<ParamField path="id" type="string" required>
+  ID único do monitor (UUID).
+  
+  **Exemplo:** `b0cd8450-bd1b-486e-87b3-8eeeb96436f2`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="page" type="number" default="1">
+  Número da página para paginação.
+  
+  **Exemplo:** `1`
+</ParamField>
+
+<ParamField query="limit" type="number" default="100">
+  Quantidade de grupos por página.
+  
+  **Exemplo:** `100`
+  
+  **Valores aceitos:** 1-100
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="data" type="array">
+  Array contendo os grupos associados ao monitor.
+  
+  <Expandable title="Objeto Grupo">
+    <ResponseField name="id" type="string">
+      ID único do grupo (UUID).
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Nome do grupo do WhatsApp.
+    </ResponseField>
+    
+    <ResponseField name="group_jid" type="string">
+      Identificador JID do grupo no WhatsApp.
+    </ResponseField>
+    
+    <ResponseField name="status_code" type="string">
+      Status da conexão (connected, disconnected, etc).
+    </ResponseField>
+    
+    <ResponseField name="avatar_url" type="string">
+      URL da foto do grupo.
+    </ResponseField>
+    
+    <ResponseField name="participants_total" type="number">
+      Total de participantes do grupo.
+    </ResponseField>
+    
+    <ResponseField name="participants_admin" type="number">
+      Quantidade de administradores.
+    </ResponseField>
+    
+    <ResponseField name="participants_member" type="number">
+      Quantidade de membros comuns.
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      Data de associação ao monitor.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Metadados da paginação.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="total" type="number">
+      Total de grupos encontrados.
+    </ResponseField>
+    
+    <ResponseField name="page" type="number">
+      Página atual.
+    </ResponseField>
+    
+    <ResponseField name="limit" type="number">
+      Itens por página.
+    </ResponseField>
+    
+    <ResponseField name="total_pages" type="number">
+      Total de páginas.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.monitora.com/monitors/b0cd8450-bd1b-486e-87b3-8eeeb96436f2/insights?page=1&limit=50' \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const monitorId = 'b0cd8450-bd1b-486e-87b3-8eeeb96436f2';
+const params = new URLSearchParams({
+  page: '1',
+  limit: '50'
+});
+
+const response = await fetch(
+  `https://api.monitora.com/monitors/${monitorId}/insights?${params}`,
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+monitor_id = "b0cd8450-bd1b-486e-87b3-8eeeb96436f2"
+url = f"https://api.monitora.com/monitors/{monitor_id}/insights"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+params = {
+    "page": 1,
+    "limit": 50
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "data": [
+    {
+      "id": "b18c6011-6b61-4e8d-b797-d0256bec296a",
+      "name": "Grupo de Vendas - SP",
+      "group_jid": "120363421317839758@g.us",
+      "status_code": "connected",
+      "avatar_url": "https://pps.whatsapp.net/v/t61.24694-24/...",
+      "participants_total": 125,
+      "participants_admin": 3,
+      "participants_member": 122,
+      "created_at": "2025-01-05T08:30:00.000Z"
+    },
+    {
+      "id": "c29d7122-7c72-5f9e-c8a8-e1367cfda3b",
+      "name": "Grupo de Vendas - RJ",
+      "group_jid": "120363421317839759@g.us",
+      "status_code": "connected",
+      "avatar_url": "https://pps.whatsapp.net/v/t61.24694-24/...",
+      "participants_total": 89,
+      "participants_admin": 2,
+      "participants_member": 87,
+      "created_at": "2025-01-06T10:15:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 15,
+    "page": 1,
+    "limit": 50,
+    "total_pages": 1
+  }
+}
+```
+
+```json Erro - Monitor Não Encontrado (404)
+{
+  "statusCode": 404,
+  "message": "Monitor não encontrado",
+  "error": "Not Found"
+}
+```
+
+</ResponseExample>
+
+## Casos de Uso
+
+<Card title="Análise de Campanhas" icon="chart-line">
+  Visualize todos os grupos vinculados a um monitor para análise de performance de campanhas.
+</Card>
+
+<Card title="Monitoramento de Status" icon="signal">
+  Verifique o status de conexão e a saúde dos grupos monitorados.
+</Card>
+
+<Card title="Gestão de Participantes" icon="users">
+  Acompanhe o crescimento e a composição dos grupos (admins vs membros).
+</Card>
+
+## Notas Importantes
+
+<Info>
+  Os insights são atualizados em tempo real conforme os grupos são sincronizados com a API.
+</Info>
+
+<Tip>
+  Use este endpoint para criar dashboards e relatórios sobre o desempenho dos seus grupos monitorados.
+</Tip>

@@ -1,0 +1,149 @@
+---
+title: "Estatísticas de Incidentes de Monitores"
+api: "GET /incidents/monitors/stats"
+description: "Retorna estatísticas agregadas sobre incidentes de monitores."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint fornece métricas e estatísticas sobre incidentes relacionados aos monitores, permitindo análise de saúde e performance dos agentes.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="start_date" type="string">
+  Data inicial para cálculo (ISO 8601).
+</ParamField>
+
+<ParamField query="end_date" type="string">
+  Data final para cálculo (ISO 8601).
+</ParamField>
+
+<ParamField query="monitor_id" type="string">
+  Filtrar estatísticas de um monitor específico.
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="summary" type="object">
+  Resumo geral.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="total_incidents" type="number">
+      Total de incidentes.
+    </ResponseField>
+    
+    <ResponseField name="monitors_affected" type="number">
+      Monitores afetados.
+    </ResponseField>
+    
+    <ResponseField name="uptime_percentage" type="number">
+      Percentual de uptime médio.
+    </ResponseField>
+    
+    <ResponseField name="average_resolution_time" type="number">
+      Tempo médio de resolução (horas).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="by_type" type="array">
+  Distribuição por tipo.
+</ResponseField>
+
+<ResponseField name="most_affected_monitors" type="array">
+  Monitores com mais incidentes.
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.monitora.com/incidents/monitors/stats' \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.monitora.com/incidents/monitors/stats',
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/incidents/monitors/stats"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "summary": {
+    "total_incidents": 23,
+    "monitors_affected": 5,
+    "uptime_percentage": 98.5,
+    "average_resolution_time": 2.3
+  },
+  "by_type": [
+    {
+      "type": "disconnection",
+      "count": 12,
+      "percentage": 52.2
+    },
+    {
+      "type": "sync_error",
+      "count": 8,
+      "percentage": 34.8
+    },
+    {
+      "type": "timeout",
+      "count": 3,
+      "percentage": 13.0
+    }
+  ],
+  "most_affected_monitors": [
+    {
+      "monitor_id": "mon_123",
+      "monitor_name": "Monitor A",
+      "incident_count": 8
+    },
+    {
+      "monitor_id": "mon_456",
+      "monitor_name": "Monitor B",
+      "incident_count": 5
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+<Tip>
+  Use o campo `uptime_percentage` para criar um SLA dashboard e monitorar a qualidade do serviço.
+</Tip>

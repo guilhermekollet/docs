@@ -1,0 +1,229 @@
+---
+title: 'OAuth 2.0'
+description: 'Implementação de autenticação OAuth 2.0 para acesso seguro'
+---
+
+## Visão Geral do OAuth 2.0
+
+OAuth 2.0 é um protocolo de autorização que permite que aplicações terceiras acessem dados de usuários sem expor suas credenciais. É ideal para aplicações web e mobile que precisam agir em nome de usuários.
+
+## Fluxos Suportados
+
+<CardGroup cols={2}>
+  <Card
+    title="Authorization Code"
+    icon="code"
+  >
+    Recomendado para aplicações web com backend
+  </Card>
+  <Card
+    title="Client Credentials"
+    icon="server"
+  >
+    Para aplicações server-to-server
+  </Card>
+</CardGroup>
+
+## Fluxo Authorization Code
+
+Este é o fluxo mais comum e seguro para aplicações web.
+
+<Steps>
+  <Step title="Registre sua aplicação">
+    Acesse o painel de controle e registre sua aplicação para obter:
+    - **Client ID**: Identificador público da sua aplicação
+    - **Client Secret**: Credencial secreta (nunca exponha publicamente)
+    - **Redirect URIs**: URLs autorizadas para callback
+  </Step>
+
+  <Step title="Redirecione o usuário para autorização">
+    Envie o usuário para o endpoint de autorização:
+
+    ```bash
+    https://api.example.com/oauth/authorize?
+      client_id=YOUR_CLIENT_ID&
+      redirect_uri=https://yourapp.com/callback&
+      response_type=code&
+      scope=read write&
+      state=RANDOM_STRING
+    ```
+
+    **Parâmetros:**
+    - `client_id`: Seu Client ID
+    - `redirect_uri`: URL de callback registrada
+    - `response_type`: Sempre `code` para este fluxo
+    - `scope`: Permissões solicitadas (separadas por espaço)
+    - `state`: String aleatória para prevenir CSRF
+  </Step>
+
+  <Step title="Receba o código de autorização">
+    Após o usuário autorizar, ele será redirecionado para:
+
+    ```
+    https://yourapp.com/callback?code=AUTH_CODE&state=RANDOM_STRING
+    ```
+
+    <Warning>
+      Valide que o parâmetro `state` corresponde ao que você enviou para prevenir ataques CSRF.
+    </Warning>
+  </Step>
+
+  <Step title="Troque o código por um token de acesso">
+    Faça uma requisição POST para trocar o código por tokens:
+
+    <CodeGroup>
+      ```bash cURL
+      curl --request POST \
+        --url https://api.example.com/oauth/token \
+        --header 'Content-Type: application/x-www-form-urlencoded' \
+        --data 'grant_type=authorization_code' \
+        --data 'code=AUTH_CODE' \
+        --data 'redirect_uri=https://yourapp.com/callback' \
+        --data 'client_id=YOUR_CLIENT_ID' \
+        --data 'client_secret=YOUR_CLIENT_SECRET'
+      ```
+
+      ```javascript JavaScript
+      const response = await fetch('https://api.example.com/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://yourapp.com/callback',
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET
+        })
+      });
+
+      const tokens = await response.json();
+      ```
+
+      ```python Python
+      import requests
+
+      data = {
+          'grant_type': 'authorization_code',
+          'code': auth_code,
+          'redirect_uri': 'https://yourapp.com/callback',
+          'client_id': os.getenv('CLIENT_ID'),
+          'client_secret': os.getenv('CLIENT_SECRET')
+      }
+
+      response = requests.post('https://api.example.com/oauth/token', data=data)
+      tokens = response.json()
+      ```
+    </CodeGroup>
+
+    **Resposta:**
+    ```json
+    {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "refresh_token": "def502004c2f...",
+      "scope": "read write"
+    }
+    ```
+  </Step>
+
+  <Step title="Use o token de acesso">
+    Inclua o token em requisições à API:
+
+    ```bash
+    curl --request GET \
+      --url https://api.example.com/v1/accounts \
+      --header 'Authorization: Bearer ACCESS_TOKEN'
+    ```
+  </Step>
+</Steps>
+
+## Renovando Tokens
+
+Tokens de acesso expiram após um período. Use o refresh token para obter um novo access token:
+
+<CodeGroup>
+  ```bash cURL
+  curl --request POST \
+    --url https://api.example.com/oauth/token \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data 'grant_type=refresh_token' \
+    --data 'refresh_token=YOUR_REFRESH_TOKEN' \
+    --data 'client_id=YOUR_CLIENT_ID' \
+    --data 'client_secret=YOUR_CLIENT_SECRET'
+  ```
+
+  ```javascript JavaScript
+  const response = await fetch('https://api.example.com/oauth/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET
+    })
+  });
+
+  const newTokens = await response.json();
+  ```
+</CodeGroup>
+
+## Escopos Disponíveis
+
+<ParamField path="read" type="string">
+  Acesso de leitura a recursos do usuário
+</ParamField>
+
+<ParamField path="write" type="string">
+  Permissão para criar e atualizar recursos
+</ParamField>
+
+<ParamField path="delete" type="string">
+  Permissão para deletar recursos
+</ParamField>
+
+<ParamField path="admin" type="string">
+  Acesso administrativo completo
+</ParamField>
+
+## Melhores Práticas
+
+<AccordionGroup>
+  <Accordion icon="shield" title="Proteja o Client Secret">
+    Nunca exponha o Client Secret em código client-side ou repositórios públicos.
+  </Accordion>
+
+  <Accordion icon="clock" title="Implemente renovação automática">
+    Configure sua aplicação para renovar tokens automaticamente antes que expirem.
+  </Accordion>
+
+  <Accordion icon="lock" title="Use HTTPS">
+    Sempre use HTTPS em produção para proteger tokens em trânsito.
+  </Accordion>
+
+  <Accordion icon="minimize" title="Solicite apenas escopos necessários">
+    Peça apenas as permissões que sua aplicação realmente precisa.
+  </Accordion>
+</AccordionGroup>
+
+## Revogando Tokens
+
+Para revogar um token de acesso:
+
+```bash
+curl --request POST \
+  --url https://api.example.com/oauth/revoke \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data 'token=TOKEN_TO_REVOKE' \
+  --data 'client_id=YOUR_CLIENT_ID' \
+  --data 'client_secret=YOUR_CLIENT_SECRET'
+```
+
+<Note>
+  Revogar um refresh token também revoga todos os access tokens associados.
+</Note>

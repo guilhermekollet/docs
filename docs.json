@@ -1,27 +1,204 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Documentation",
-  "colors": {
-    "primary": "#0D9373"
+  "name": "API Documentation",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
   },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@example.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://dashboard.example.com"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "Guides",
+      "url": "guides"
+    }
+  ],
   "navigation": {
     "groups": [
       {
-        "group": "Getting Started",
+        "group": "Get Started",
         "pages": [
-          "getting-started/subscription",
-          "getting-started/smartlinks",
-          "getting-started/monitors",
-          "getting-started/incidents",
-          "getting-started/groups",
-          "getting-started/credits",
-          "getting-started/common",
-          "getting-started/campaings",
-          "getting-started/untitled-page-1",
-          "getting-started/accounts"
+          "introduction/overview",
+          "introduction/getting-started",
+          "changelog"
+        ]
+      },
+      {
+        "group": "Authentication",
+        "pages": [
+          "authentication/overview",
+          "authentication/api-keys",
+          "authentication/oauth"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "guides/quickstart",
+              "guides/best-practices",
+              "guides/rate-limits",
+              "guides/code-examples"
+            ]
+          }
+        ]
+      },
+      {
+        "group": "Webhooks",
+        "pages": [
+          "webhooks/overview"
+        ]
+      },
+      {
+        "group": "Errors & Troubleshooting",
+        "pages": [
+          "errors/overview"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/overview"
+        ]
+      },
+      {
+        "group": "Endpoints",
+        "pages": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api-reference/auth/overview",
+              "api-reference/auth/login",
+              "api-reference/auth/logout",
+              "api-reference/auth/refresh",
+              "api-reference/auth/me"
+            ]
+          },
+          {
+            "group": "Accounts",
+            "pages": [
+              "api-reference/accounts/overview",
+              "api-reference/accounts/usage",
+              "api-reference/accounts/list-adaccounts",
+              "api-reference/accounts/create-facebook"
+            ]
+          },
+          {
+            "group": "Campaigns",
+            "pages": [
+              "api-reference/campaigns/overview",
+              "api-reference/campaigns/list-groups"
+            ]
+          },
+          {
+            "group": "Groups",
+            "pages": [
+              "api-reference/groups/overview",
+              "api-reference/groups/update-image"
+            ]
+          },
+          {
+            "group": "Monitors",
+            "pages": [
+              "api-reference/monitors/overview",
+              "api-reference/monitors/list",
+              "api-reference/monitors/create",
+              "api-reference/monitors/update",
+              "api-reference/monitors/delete",
+              "api-reference/monitors/insights"
+            ]
+          },
+          {
+            "group": "SmartLinks",
+            "pages": [
+              "api-reference/smartlinks/overview",
+              "api-reference/smartlinks/validate",
+              "api-reference/smartlinks/get-campaign",
+              "api-reference/smartlinks/update-details",
+              "api-reference/smartlinks/activities"
+            ]
+          },
+          {
+            "group": "Credits",
+            "pages": [
+              "api-reference/credits/overview",
+              "api-reference/credits/history",
+              "api-reference/credits/breakdown"
+            ]
+          },
+          {
+            "group": "Incidents",
+            "pages": [
+              "api-reference/incidents/overview",
+              "api-reference/incidents/monitors",
+              "api-reference/incidents/monitors-stats",
+              "api-reference/incidents/links",
+              "api-reference/incidents/links-stats"
+            ]
+          },
+          {
+            "group": "Subscriptions",
+            "pages": [
+              "api-reference/subscriptions/overview",
+              "api-reference/subscriptions/status",
+              "api-reference/subscriptions/checkout",
+              "api-reference/subscriptions/portal"
+            ]
+          }
         ]
       }
     ]
+  },
+  "footerSocials": {
+    "twitter": "https://twitter.com/example",
+    "github": "https://github.com/example",
+    "linkedin": "https://www.linkedin.com/company/example"
+  },
+  "api": {
+    "baseUrl": "https://api.monitoragrupo.com",
+    "playground": {
+      "mode": "show"
+    },
+    "mdx": {
+      "server": "https://api.monitoragrupo.com",
+      "auth": {
+        "method": "bearer",
+        "name": "Authorization"
+      }
+    }
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
+  },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-XXXXXXXXXX"
+    }
+  },
+  "seo": {
+    "indexing": "navigable"
   }
 }

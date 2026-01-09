@@ -1,0 +1,226 @@
+---
+title: 'Campanhas'
+description: 'Gerencie campanhas de marketing e grupos do WhatsApp'
+---
+
+## Visão Geral
+
+A API de Campanhas permite criar, gerenciar e monitorar campanhas de marketing com integração aos grupos do WhatsApp. Acompanhe performance, gerencie grupos e otimize resultados.
+
+<CardGroup cols={2}>
+  <Card
+    title="Listar Grupos"
+    icon="list"
+    href="/api-reference/campaigns/list-groups"
+  >
+    Liste todos os grupos de uma campanha
+  </Card>
+</CardGroup>
+
+## Funcionalidades
+
+### Gestão de Grupos
+Organize grupos do WhatsApp em campanhas estruturadas para melhor controle e análise.
+
+### Análise de Performance
+Acompanhe métricas como taxa de conversão, cliques e engajamento em tempo real.
+
+### Automação
+Configure regras automáticas para rotação de grupos, distribuição de leads e mais.
+
+## Estrutura de Campanha
+
+```
+Campanha
+├── Informações Básicas
+│   ├── Nome
+│   ├── Descrição
+│   └── Status (ativa/pausada)
+├── Grupos
+│   ├── Grupo 1 (Capacidade: 50/100)
+│   ├── Grupo 2 (Capacidade: 75/100)
+│   └── Grupo 3 (Capacidade: 30/100)
+└── Configurações
+    ├── Rotação automática
+    ├── Validação de links
+    └── Distribuição de leads
+```
+
+## Casos de Uso
+
+### Dashboard de Campanha
+
+```javascript
+async function getCampaignOverview(campaignId) {
+  const response = await fetch(
+    `https://api.monitoragrupo.com/v1/campaigns/${campaignId}/groups`,
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  );
+  
+  const { groups, stats } = await response.json();
+  
+  // Calcular métricas
+  const totalCapacity = groups.reduce((sum, g) => sum + g.max_capacity, 0);
+  const totalMembers = groups.reduce((sum, g) => sum + g.current_members, 0);
+  const utilizationRate = (totalMembers / totalCapacity) * 100;
+  
+  return {
+    groups: groups.length,
+    totalCapacity,
+    totalMembers,
+    utilizationRate: utilizationRate.toFixed(2) + '%',
+    activeGroups: groups.filter(g => g.is_active).length
+  };
+}
+```
+
+### Rotação Inteligente de Grupos
+
+```python
+import requests
+
+class CampaignManager:
+    def __init__(self, campaign_id, auth_token):
+        self.campaign_id = campaign_id
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def get_available_group(self):
+        """Retorna o próximo grupo disponível com base na capacidade"""
+        response = requests.get(
+            f'{self.base_url}/campaigns/{self.campaign_id}/groups',
+            headers=self.headers
+        )
+        
+        groups = response.json()['groups']
+        
+        # Filtrar grupos ativos com espaço disponível
+        available = [
+            g for g in groups 
+            if g['is_active'] and g['current_members'] < g['max_capacity']
+        ]
+        
+        if not available:
+            return None
+        
+        # Retornar grupo com menor ocupação (distribuição balanceada)
+        return min(available, key=lambda g: g['current_members'] / g['max_capacity'])
+    
+    def get_campaign_stats(self):
+        """Estatísticas consolidadas da campanha"""
+        response = requests.get(
+            f'{self.base_url}/campaigns/{self.campaign_id}/groups',
+            headers=self.headers
+        )
+        
+        data = response.json()
+        groups = data['groups']
+        
+        return {
+            'total_groups': len(groups),
+            'active_groups': sum(1 for g in groups if g['is_active']),
+            'total_capacity': sum(g['max_capacity'] for g in groups),
+            'total_members': sum(g['current_members'] for g in groups),
+            'conversion_rate': data.get('stats', {}).get('conversion_rate', 0)
+        }
+
+# Uso
+manager = CampaignManager('campaign_123', 'YOUR_TOKEN')
+next_group = manager.get_available_group()
+
+if next_group:
+    print(f"✅ Próximo grupo: {next_group['name']}")
+    print(f"   Ocupação: {next_group['current_members']}/{next_group['max_capacity']}")
+else:
+    print("⚠️ Nenhum grupo disponível no momento")
+```
+
+### Sistema de Alertas
+
+```javascript
+async function monitorCampaign(campaignId) {
+  const { groups } = await getCampaignGroups(campaignId);
+  
+  groups.forEach(group => {
+    const occupation = (group.current_members / group.max_capacity) * 100;
+    
+    if (occupation >= 90) {
+      console.log(`🔴 ALERTA: Grupo "${group.name}" está ${occupation.toFixed(1)}% cheio!`);
+      // Enviar notificação, email, webhook, etc.
+    } else if (occupation >= 75) {
+      console.log(`🟡 AVISO: Grupo "${group.name}" está ${occupation.toFixed(1)}% cheio`);
+    }
+    
+    if (!group.is_active) {
+      console.log(`⏸️ Grupo "${group.name}" está pausado`);
+    }
+  });
+}
+
+// Executar a cada 5 minutos
+setInterval(() => monitorCampaign('campaign_123'), 5 * 60 * 1000);
+```
+
+## Métricas Importantes
+
+<CardGroup cols={2}>
+  <Card title="Taxa de Conversão" icon="percentage">
+    Percentual de cliques que resultam em entradas nos grupos
+  </Card>
+  <Card title="Ocupação Média" icon="chart-pie">
+    Média de ocupação dos grupos da campanha
+  </Card>
+  <Card title="Grupos Ativos" icon="circle-check">
+    Quantidade de grupos ativos e disponíveis
+  </Card>
+  <Card title="Tempo Médio de Preenchimento" icon="clock">
+    Tempo médio para um grupo atingir capacidade máxima
+  </Card>
+</CardGroup>
+
+## Melhores Práticas
+
+<Tip>
+  **Distribua uniformemente**: Configure rotação automática para distribuir leads de forma balanceada entre os grupos.
+</Tip>
+
+<Warning>
+  **Monitore a capacidade**: Grupos próximos do limite podem causar perda de leads. Adicione novos grupos proativamente.
+</Warning>
+
+<Note>
+  **Valide links regularmente**: Use o endpoint de validação do SmartLinks para verificar se os links dos grupos ainda estão ativos.
+</Note>
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="SmartLinks"
+    icon="link"
+    href="/api-reference/smartlinks/overview"
+  >
+    Crie links inteligentes para suas campanhas
+  </Card>
+  <Card
+    title="Monitors"
+    icon="radar"
+    href="/api-reference/monitors/overview"
+  >
+    Configure monitoramento de grupos
+  </Card>
+  <Card
+    title="Incidents"
+    icon="triangle-exclamation"
+    href="/api-reference/incidents/overview"
+  >
+    Gerencie incidentes e problemas
+  </Card>
+  <Card
+    title="Groups"
+    icon="users"
+    href="/api-reference/groups/overview"
+  >
+    Administre grupos individuais
+  </Card>
+</CardGroup>

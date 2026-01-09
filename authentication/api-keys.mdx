@@ -1,0 +1,162 @@
+---
+title: 'Chaves de API'
+description: 'Como gerar e gerenciar suas chaves de API'
+---
+
+## O que são Chaves de API?
+
+As chaves de API são credenciais secretas que permitem que suas aplicações se autentiquem e interajam com nossa API. Elas funcionam como senhas e devem ser mantidas em segurança.
+
+## Gerando uma Chave de API
+
+<Steps>
+  <Step title="Acesse o painel de controle">
+    Faça login em sua conta e navegue até a seção **Configurações > API Keys**.
+  </Step>
+
+  <Step title="Crie uma nova chave">
+    Clique em **"Gerar Nova Chave"** e forneça um nome descritivo para identificá-la facilmente.
+    
+    <Tip>
+      Use nomes descritivos como "Produção - Servidor Web" ou "Desenvolvimento - App Mobile" para facilitar o gerenciamento.
+    </Tip>
+  </Step>
+
+  <Step title="Copie e armazene com segurança">
+    A chave será exibida apenas uma vez. Copie-a imediatamente e armazene em um local seguro.
+    
+    <Warning>
+      Você não poderá visualizar a chave novamente. Se perdê-la, será necessário gerar uma nova.
+    </Warning>
+  </Step>
+</Steps>
+
+## Tipos de Chaves
+
+<CardGroup cols={2}>
+  <Card
+    title="Chaves de Produção"
+    icon="shield"
+  >
+    Usadas em ambientes de produção com acesso completo aos dados reais
+  </Card>
+  <Card
+    title="Chaves de Teste"
+    icon="flask"
+  >
+    Usadas em desenvolvimento com dados de sandbox para testes seguros
+  </Card>
+</CardGroup>
+
+## Usando suas Chaves
+
+Inclua sua chave de API no header de cada requisição:
+
+<CodeGroup>
+  ```bash cURL
+  curl --request GET \
+    --url https://api.example.com/v1/accounts \
+    --header 'Authorization: Bearer sk_live_1234567890abcdef'
+  ```
+
+  ```javascript JavaScript
+  const apiKey = process.env.API_KEY;
+  
+  const response = await fetch('https://api.example.com/v1/accounts', {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`
+    }
+  });
+  ```
+
+  ```python Python
+  import os
+  import requests
+
+  api_key = os.getenv('API_KEY')
+  
+  headers = {
+      'Authorization': f'Bearer {api_key}'
+  }
+
+  response = requests.get('https://api.example.com/v1/accounts', headers=headers)
+  ```
+
+  ```php PHP
+  <?php
+  $apiKey = getenv('API_KEY');
+  
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, 'https://api.example.com/v1/accounts');
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Authorization: Bearer ' . $apiKey
+  ));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $response = curl_exec($ch);
+  curl_close($ch);
+  ?>
+  ```
+</CodeGroup>
+
+## Gerenciando Chaves
+
+### Listar Chaves Ativas
+
+Você pode visualizar todas as suas chaves ativas no painel de controle, incluindo:
+
+- Nome da chave
+- Data de criação
+- Último uso
+- Escopo de permissões
+
+### Revogar Chaves
+
+Se uma chave for comprometida ou não for mais necessária:
+
+<Steps>
+  <Step title="Acesse o painel">
+    Navegue até **Configurações > API Keys**
+  </Step>
+
+  <Step title="Selecione a chave">
+    Encontre a chave que deseja revogar
+  </Step>
+
+  <Step title="Revogue">
+    Clique em **"Revogar"** e confirme a ação
+  </Step>
+</Steps>
+
+<Warning>
+  Revogar uma chave é irreversível. Todas as requisições usando essa chave falharão imediatamente.
+</Warning>
+
+## Escopos e Permissões
+
+Você pode limitar o acesso de cada chave de API configurando escopos específicos:
+
+<AccordionGroup>
+  <Accordion icon="book-open" title="Leitura (read)">
+    Permite apenas operações de leitura (GET)
+  </Accordion>
+
+  <Accordion icon="pen" title="Escrita (write)">
+    Permite criar e atualizar recursos (POST, PUT, PATCH)
+  </Accordion>
+
+  <Accordion icon="trash" title="Exclusão (delete)">
+    Permite deletar recursos (DELETE)
+  </Accordion>
+
+  <Accordion icon="crown" title="Admin">
+    Acesso completo a todos os recursos e operações
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Por segurança, sempre conceda o mínimo de permissões necessárias para cada chave de API.
+</Tip>
+
+## Limites de Taxa
+
+Cada chave de API está sujeita a limites de taxa. Consulte [Limites de Taxa](/guides/rate-limits) para mais detalhes.

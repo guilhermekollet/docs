@@ -1,0 +1,78 @@
+---
+title: "Deletar Monitor"
+api: "DELETE /monitors/{id}"
+description: "Remove um monitor do sistema."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint permite deletar permanentemente um monitor do sistema. Todos os grupos associados serão desvinculados.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Path
+
+<ParamField path="id" type="string" required>
+  ID único do monitor a ser deletado (UUID).
+  
+  **Exemplo:** `b0cd8450-bd1b-486e-87b3-8eeeb96436f2`
+</ParamField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request DELETE \
+  --url https://api.monitora.com/monitors/b0cd8450-bd1b-486e-87b3-8eeeb96436f2 \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const monitorId = 'b0cd8450-bd1b-486e-87b3-8eeeb96436f2';
+
+const response = await fetch(
+  `https://api.monitora.com/monitors/${monitorId}`,
+  {
+    method: 'DELETE',
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+```
+
+```python Python
+import requests
+
+monitor_id = "b0cd8450-bd1b-486e-87b3-8eeeb96436f2"
+url = f"https://api.monitora.com/monitors/{monitor_id}"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.delete(url, headers=headers)
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "message": "Monitor deletado com sucesso"
+}
+```
+
+</ResponseExample>
+
+<Warning>
+  Esta ação é irreversível. Certifique-se de que deseja realmente deletar o monitor antes de confirmar.
+</Warning>

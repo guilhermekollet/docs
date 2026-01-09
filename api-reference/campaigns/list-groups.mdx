@@ -1,0 +1,179 @@
+---
+title: "Listar Grupos da Campanha"
+api: "GET /campaigns/{campaignId}/groups"
+description: "Retorna os grupos vinculados a uma campanha com informações de status e participantes."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint retorna todos os grupos vinculados a uma campanha específica, incluindo informações essenciais de status, participantes e agente associado.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Path
+
+<ParamField path="campaignId" type="string" required>
+  ID único da campanha (UUID).
+  
+  **Exemplo:** `e882db82-55b8-4cc9-8b73-b546abb0c2e8`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="page" type="number" default="1">
+  Número da página para paginação.
+</ParamField>
+
+<ParamField query="limit" type="number" default="10">
+  Quantidade de grupos por página.
+</ParamField>
+
+<ParamField query="search" type="string">
+  Termo de busca para filtrar grupos.
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="data" type="array">
+  Array contendo os grupos da campanha.
+  
+  <Expandable title="Objeto Grupo">
+    <ResponseField name="id" type="string">
+      ID único do grupo (UUID).
+    </ResponseField>
+    
+    <ResponseField name="campaign_id" type="string">
+      ID da campanha.
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Nome do grupo.
+    </ResponseField>
+    
+    <ResponseField name="group_jid" type="string">
+      Identificador JID do WhatsApp.
+    </ResponseField>
+    
+    <ResponseField name="status_code" type="string">
+      Status da conexão (connected, disconnected).
+    </ResponseField>
+    
+    <ResponseField name="agent_id" type="string">
+      ID do agente associado.
+    </ResponseField>
+    
+    <ResponseField name="agent_status" type="boolean">
+      Status do agente (ativo/inativo).
+    </ResponseField>
+    
+    <ResponseField name="avatar_url" type="string">
+      URL da foto do grupo.
+    </ResponseField>
+    
+    <ResponseField name="position" type="number">
+      Posição do grupo na campanha.
+    </ResponseField>
+    
+    <ResponseField name="participants_total" type="number">
+      Total de participantes.
+    </ResponseField>
+    
+    <ResponseField name="participants_admin" type="number">
+      Quantidade de administradores.
+    </ResponseField>
+    
+    <ResponseField name="participants_member" type="number">
+      Quantidade de membros.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url https://api.monitora.com/campaigns/e882db82-55b8-4cc9-8b73-b546abb0c2e8/groups \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const campaignId = 'e882db82-55b8-4cc9-8b73-b546abb0c2e8';
+
+const response = await fetch(
+  `https://api.monitora.com/campaigns/${campaignId}/groups`,
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+campaign_id = "e882db82-55b8-4cc9-8b73-b546abb0c2e8"
+url = f"https://api.monitora.com/campaigns/{campaign_id}/groups"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+[
+  {
+    "id": "b18c6011-6b61-4e8d-b797-d0256bec296a",
+    "campaign_id": "e882db82-55b8-4cc9-8b73-b546abb0c2e8",
+    "name": "Testes",
+    "group_jid": "120363421317839758@g.us",
+    "status_code": "connected",
+    "agent_id": "b0cd8450-bd1b-486e-87b3-8eeeb96436f2",
+    "agent_status": true,
+    "avatar_url": "https://pps.whatsapp.net/...",
+    "position": 2,
+    "participants_total": 3,
+    "participants_admin": 1,
+    "participants_member": 2
+  }
+]
+```
+
+```json Erro - Campanha Não Encontrada (404)
+{
+  "statusCode": 404,
+  "message": "Campanha não encontrada",
+  "error": "Not Found"
+}
+```
+
+```json Erro - Sem Acesso (403)
+{
+  "statusCode": 403,
+  "message": "Usuário não tem acesso à campanha",
+  "error": "Forbidden"
+}
+```
+
+</ResponseExample>
+
+<Info>
+  Os grupos são retornados ordenados pela propriedade `position`.
+</Info>

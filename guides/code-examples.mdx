@@ -1,0 +1,601 @@
+---
+title: 'Exemplos de Código'
+description: 'Exemplos práticos e completos de implementação'
+---
+
+## SDKs Oficiais
+
+Oferecemos SDKs oficiais para facilitar a integração:
+
+<CardGroup cols={3}>
+  <Card
+    title="JavaScript/Node.js"
+    icon="node-js"
+    href="https://github.com/example/sdk-javascript"
+  >
+    `npm install @example/sdk`
+  </Card>
+  <Card
+    title="Python"
+    icon="python"
+    href="https://github.com/example/sdk-python"
+  >
+    `pip install example-sdk`
+  </Card>
+  <Card
+    title="PHP"
+    icon="php"
+    href="https://github.com/example/sdk-php"
+  >
+    `composer require example/sdk`
+  </Card>
+</CardGroup>
+
+## Exemplos Práticos
+
+### Gerenciamento de Contas
+
+<CodeGroup>
+  ```javascript JavaScript
+  const ExampleAPI = require('@example/sdk');
+
+  const client = new ExampleAPI({
+    apiKey: process.env.API_KEY
+  });
+
+  async function manageAccounts() {
+    try {
+      // Criar conta
+      const newAccount = await client.accounts.create({
+        name: 'John Doe',
+        email: 'john@example.com',
+        type: 'business'
+      });
+      console.log('Conta criada:', newAccount.id);
+
+      // Listar contas
+      const accounts = await client.accounts.list({
+        limit: 10,
+        status: 'active'
+      });
+      console.log(`${accounts.data.length} contas encontradas`);
+
+      // Atualizar conta
+      const updated = await client.accounts.update(newAccount.id, {
+        name: 'John Smith'
+      });
+      console.log('Conta atualizada:', updated.name);
+
+      // Buscar conta específica
+      const account = await client.accounts.retrieve(newAccount.id);
+      console.log('Conta:', account);
+
+    } catch (error) {
+      console.error('Erro:', error.message);
+    }
+  }
+
+  manageAccounts();
+  ```
+
+  ```python Python
+  from example_sdk import ExampleAPI
+  import os
+
+  client = ExampleAPI(api_key=os.getenv('API_KEY'))
+
+  def manage_accounts():
+      try:
+          # Criar conta
+          new_account = client.accounts.create(
+              name='John Doe',
+              email='john@example.com',
+              type='business'
+          )
+          print(f'Conta criada: {new_account.id}')
+
+          # Listar contas
+          accounts = client.accounts.list(
+              limit=10,
+              status='active'
+          )
+          print(f'{len(accounts.data)} contas encontradas')
+
+          # Atualizar conta
+          updated = client.accounts.update(
+              new_account.id,
+              name='John Smith'
+          )
+          print(f'Conta atualizada: {updated.name}')
+
+          # Buscar conta específica
+          account = client.accounts.retrieve(new_account.id)
+          print(f'Conta: {account}')
+
+      except Exception as e:
+          print(f'Erro: {str(e)}')
+
+  manage_accounts()
+  ```
+
+  ```php PHP
+  <?php
+  require 'vendor/autoload.php';
+
+  use Example\SDK\ExampleAPI;
+
+  $client = new ExampleAPI(getenv('API_KEY'));
+
+  try {
+      // Criar conta
+      $newAccount = $client->accounts->create([
+          'name' => 'John Doe',
+          'email' => 'john@example.com',
+          'type' => 'business'
+      ]);
+      echo "Conta criada: {$newAccount->id}\n";
+
+      // Listar contas
+      $accounts = $client->accounts->listAll([
+          'limit' => 10,
+          'status' => 'active'
+      ]);
+      echo count($accounts->data) . " contas encontradas\n";
+
+      // Atualizar conta
+      $updated = $client->accounts->update($newAccount->id, [
+          'name' => 'John Smith'
+      ]);
+      echo "Conta atualizada: {$updated->name}\n";
+
+      // Buscar conta específica
+      $account = $client->accounts->retrieve($newAccount->id);
+      print_r($account);
+
+  } catch (Exception $e) {
+      echo "Erro: " . $e->getMessage();
+  }
+  ?>
+  ```
+</CodeGroup>
+
+### Campanhas com Rastreamento
+
+<CodeGroup>
+  ```javascript JavaScript
+  async function createCampaign() {
+    try {
+      // Criar campanha
+      const campaign = await client.campaigns.create({
+        name: 'Summer Sale 2026',
+        type: 'email',
+        status: 'draft',
+        settings: {
+          subject: 'Promoção de Verão!',
+          from_email: 'marketing@example.com',
+          from_name: 'Example Marketing'
+        },
+        schedule: {
+          send_at: '2026-06-01T10:00:00Z'
+        }
+      });
+
+      console.log('Campanha criada:', campaign.id);
+
+      // Adicionar destinatários
+      await client.campaigns.addRecipients(campaign.id, {
+        recipients: [
+          { email: 'user1@example.com', name: 'User 1' },
+          { email: 'user2@example.com', name: 'User 2' }
+        ]
+      });
+
+      // Iniciar campanha
+      const started = await client.campaigns.start(campaign.id);
+      console.log('Campanha iniciada:', started.status);
+
+      // Obter métricas
+      const metrics = await client.campaigns.getMetrics(campaign.id);
+      console.log('Métricas:', {
+        sent: metrics.sent,
+        opened: metrics.opened,
+        clicked: metrics.clicked,
+        open_rate: `${metrics.open_rate}%`
+      });
+
+    } catch (error) {
+      console.error('Erro:', error.message);
+    }
+  }
+
+  createCampaign();
+  ```
+
+  ```python Python
+  def create_campaign():
+      try:
+          # Criar campanha
+          campaign = client.campaigns.create(
+              name='Summer Sale 2026',
+              type='email',
+              status='draft',
+              settings={
+                  'subject': 'Promoção de Verão!',
+                  'from_email': 'marketing@example.com',
+                  'from_name': 'Example Marketing'
+              },
+              schedule={
+                  'send_at': '2026-06-01T10:00:00Z'
+              }
+          )
+          print(f'Campanha criada: {campaign.id}')
+
+          # Adicionar destinatários
+          client.campaigns.add_recipients(
+              campaign.id,
+              recipients=[
+                  {'email': 'user1@example.com', 'name': 'User 1'},
+                  {'email': 'user2@example.com', 'name': 'User 2'}
+              ]
+          )
+
+          # Iniciar campanha
+          started = client.campaigns.start(campaign.id)
+          print(f'Campanha iniciada: {started.status}')
+
+          # Obter métricas
+          metrics = client.campaigns.get_metrics(campaign.id)
+          print(f'Métricas: enviados={metrics.sent}, '
+                f'abertos={metrics.opened}, '
+                f'taxa de abertura={metrics.open_rate}%')
+
+      except Exception as e:
+          print(f'Erro: {str(e)}')
+
+  create_campaign()
+  ```
+</CodeGroup>
+
+### Webhooks
+
+<CodeGroup>
+  ```javascript Express.js
+  const express = require('express');
+  const crypto = require('crypto');
+
+  const app = express();
+  const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+
+  // Middleware para verificar assinatura
+  function verifyWebhookSignature(req, res, next) {
+    const signature = req.headers['x-webhook-signature'];
+    const payload = JSON.stringify(req.body);
+    
+    const expectedSignature = crypto
+      .createHmac('sha256', WEBHOOK_SECRET)
+      .update(payload)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    next();
+  }
+
+  app.use(express.json());
+
+  // Endpoint de webhook
+  app.post('/webhooks', verifyWebhookSignature, async (req, res) => {
+    const event = req.body;
+
+    console.log(`Received event: ${event.type}`);
+
+    try {
+      switch (event.type) {
+        case 'account.created':
+          await handleAccountCreated(event.data.object);
+          break;
+        
+        case 'campaign.completed':
+          await handleCampaignCompleted(event.data.object);
+          break;
+        
+        case 'credits.low_balance':
+          await handleLowBalance(event.data.object);
+          break;
+        
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      // Responder rapidamente
+      res.status(200).json({ received: true });
+
+    } catch (error) {
+      console.error('Error processing webhook:', error);
+      res.status(500).json({ error: 'Processing failed' });
+    }
+  });
+
+  async function handleAccountCreated(account) {
+    console.log(`New account created: ${account.id}`);
+    // Enviar email de boas-vindas, etc.
+  }
+
+  async function handleCampaignCompleted(campaign) {
+    console.log(`Campaign ${campaign.id} completed`);
+    // Gerar relatório, notificar usuário, etc.
+  }
+
+  async function handleLowBalance(account) {
+    console.log(`Low balance alert for account: ${account.id}`);
+    // Enviar notificação, bloquear funcionalidades, etc.
+  }
+
+  app.listen(3000, () => {
+    console.log('Webhook server running on port 3000');
+  });
+  ```
+
+  ```python Flask
+  from flask import Flask, request, jsonify
+  import hmac
+  import hashlib
+  import os
+
+  app = Flask(__name__)
+  WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
+
+  def verify_webhook_signature(payload, signature):
+      expected_signature = hmac.new(
+          WEBHOOK_SECRET.encode(),
+          payload.encode(),
+          hashlib.sha256
+      ).hexdigest()
+      return hmac.compare_digest(signature, expected_signature)
+
+  @app.route('/webhooks', methods=['POST'])
+  def webhook():
+      signature = request.headers.get('X-Webhook-Signature')
+      payload = request.get_data(as_text=True)
+      
+      if not verify_webhook_signature(payload, signature):
+          return jsonify({'error': 'Invalid signature'}), 401
+      
+      event = request.get_json()
+      print(f"Received event: {event['type']}")
+
+      try:
+          event_type = event['type']
+          
+          if event_type == 'account.created':
+              handle_account_created(event['data']['object'])
+          elif event_type == 'campaign.completed':
+              handle_campaign_completed(event['data']['object'])
+          elif event_type == 'credits.low_balance':
+              handle_low_balance(event['data']['object'])
+          else:
+              print(f"Unhandled event type: {event_type}")
+
+          return jsonify({'received': True}), 200
+
+      except Exception as e:
+          print(f"Error processing webhook: {str(e)}")
+          return jsonify({'error': 'Processing failed'}), 500
+
+  def handle_account_created(account):
+      print(f"New account created: {account['id']}")
+      # Enviar email de boas-vindas, etc.
+
+  def handle_campaign_completed(campaign):
+      print(f"Campaign {campaign['id']} completed")
+      # Gerar relatório, notificar usuário, etc.
+
+  def handle_low_balance(account):
+      print(f"Low balance alert for account: {account['id']}")
+      # Enviar notificação, bloquear funcionalidades, etc.
+
+  if __name__ == '__main__':
+      app.run(port=3000)
+  ```
+</CodeGroup>
+
+### Retry com Backoff Exponencial
+
+<CodeGroup>
+  ```javascript JavaScript
+  class APIClient {
+    constructor(apiKey) {
+      this.apiKey = apiKey;
+      this.baseURL = 'https://api.example.com/v1';
+    }
+
+    async request(endpoint, options = {}, maxRetries = 3) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const response = await fetch(`${this.baseURL}${endpoint}`, {
+            ...options,
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+              ...options.headers
+            }
+          });
+
+          // Rate limit
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After') || Math.pow(2, attempt);
+            console.log(`Rate limited. Retrying after ${retryAfter}s...`);
+            await this.sleep(retryAfter * 1000);
+            continue;
+          }
+
+          // Server errors
+          if (response.status >= 500) {
+            if (attempt < maxRetries - 1) {
+              const waitTime = Math.pow(2, attempt) * 1000;
+              console.log(`Server error. Retrying in ${waitTime}ms...`);
+              await this.sleep(waitTime);
+              continue;
+            }
+          }
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error.message);
+          }
+
+          return await response.json();
+
+        } catch (error) {
+          if (attempt === maxRetries - 1) {
+            throw error;
+          }
+          
+          const waitTime = Math.pow(2, attempt) * 1000;
+          console.log(`Request failed. Retrying in ${waitTime}ms...`);
+          await this.sleep(waitTime);
+        }
+      }
+    }
+
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Métodos convenientes
+    async get(endpoint) {
+      return this.request(endpoint);
+    }
+
+    async post(endpoint, data) {
+      return this.request(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    }
+
+    async patch(endpoint, data) {
+      return this.request(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      });
+    }
+
+    async delete(endpoint) {
+      return this.request(endpoint, {
+        method: 'DELETE'
+      });
+    }
+  }
+
+  // Uso
+  const client = new APIClient(process.env.API_KEY);
+
+  async function example() {
+    try {
+      const accounts = await client.get('/accounts?limit=10');
+      console.log(accounts);
+    } catch (error) {
+      console.error('Failed after retries:', error);
+    }
+  }
+
+  example();
+  ```
+
+  ```python Python
+  import requests
+  import time
+  from typing import Optional, Dict, Any
+
+  class APIClient:
+      def __init__(self, api_key: str):
+          self.api_key = api_key
+          self.base_url = 'https://api.example.com/v1'
+          self.session = requests.Session()
+          self.session.headers.update({
+              'Authorization': f'Bearer {api_key}',
+              'Content-Type': 'application/json'
+          })
+
+      def request(self, endpoint: str, method: str = 'GET', 
+                  data: Optional[Dict] = None, max_retries: int = 3) -> Any:
+          
+          for attempt in range(max_retries):
+              try:
+                  response = self.session.request(
+                      method,
+                      f'{self.base_url}{endpoint}',
+                      json=data,
+                      timeout=30
+                  )
+
+                  # Rate limit
+                  if response.status_code == 429:
+                      retry_after = int(response.headers.get('Retry-After', 2 ** attempt))
+                      print(f'Rate limited. Retrying after {retry_after}s...')
+                      time.sleep(retry_after)
+                      continue
+
+                  # Server errors
+                  if response.status_code >= 500:
+                      if attempt < max_retries - 1:
+                          wait_time = 2 ** attempt
+                          print(f'Server error. Retrying in {wait_time}s...')
+                          time.sleep(wait_time)
+                          continue
+
+                  response.raise_for_status()
+                  return response.json()
+
+              except requests.exceptions.RequestException as e:
+                  if attempt == max_retries - 1:
+                      raise e
+                  
+                  wait_time = 2 ** attempt
+                  print(f'Request failed. Retrying in {wait_time}s...')
+                  time.sleep(wait_time)
+
+      def get(self, endpoint: str) -> Any:
+          return self.request(endpoint, 'GET')
+
+      def post(self, endpoint: str, data: Dict) -> Any:
+          return self.request(endpoint, 'POST', data)
+
+      def patch(self, endpoint: str, data: Dict) -> Any:
+          return self.request(endpoint, 'PATCH', data)
+
+      def delete(self, endpoint: str) -> Any:
+          return self.request(endpoint, 'DELETE')
+
+  # Uso
+  client = APIClient(os.getenv('API_KEY'))
+
+  try:
+      accounts = client.get('/accounts?limit=10')
+      print(accounts)
+  except Exception as e:
+      print(f'Failed after retries: {str(e)}')
+  ```
+</CodeGroup>
+
+## Recursos Adicionais
+
+<CardGroup cols={2}>
+  <Card
+    title="GitHub Examples"
+    icon="github"
+    href="https://github.com/example/api-examples"
+  >
+    Repositório com exemplos completos
+  </Card>
+  <Card
+    title="Postman Collection"
+    icon="cloud"
+    href="https://postman.com/example/workspace"
+  >
+    Coleção pronta para importar
+  </Card>
+</CardGroup>

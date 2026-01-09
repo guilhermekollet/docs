@@ -1,0 +1,395 @@
+---
+title: 'Monitores'
+description: 'Configure monitoramento automatizado de grupos e links do WhatsApp'
+---
+
+## Visão Geral
+
+A API de Monitores permite criar, gerenciar e analisar monitores automáticos para grupos e links do WhatsApp. Receba alertas em tempo real sobre mudanças de status, capacidade e disponibilidade.
+
+<CardGroup cols={2}>
+  <Card
+    title="Listar Monitores"
+    icon="list"
+    href="/api-reference/monitors/list"
+  >
+    Veja todos os monitores configurados
+  </Card>
+  <Card
+    title="Criar Monitor"
+    icon="plus"
+    href="/api-reference/monitors/create"
+  >
+    Configure novo monitoramento
+  </Card>
+  <Card
+    title="Atualizar Monitor"
+    icon="pen-to-square"
+    href="/api-reference/monitors/update"
+  >
+    Modifique configurações existentes
+  </Card>
+  <Card
+    title="Excluir Monitor"
+    icon="trash"
+    href="/api-reference/monitors/delete"
+  >
+    Remova monitores desnecessários
+  </Card>
+  <Card
+    title="Insights"
+    icon="chart-line"
+    href="/api-reference/monitors/insights"
+  >
+    Analise dados e tendências
+  </Card>
+</CardGroup>
+
+## Tipos de Monitoramento
+
+### Monitoramento de Grupos
+Verifique periodicamente o status e capacidade dos grupos do WhatsApp.
+
+**Métricas monitoradas:**
+- Status do grupo (ativo/inativo/removido)
+- Capacidade atual vs máxima
+- Taxa de ocupação
+- Tempo de resposta
+- Disponibilidade do link
+
+### Monitoramento de Links
+Valide se links de convite estão funcionando e acessíveis.
+
+**Verificações:**
+- HTTP status code
+- Tempo de resposta
+- Metadados OpenGraph
+- Redirecionamentos
+- Validade do convite
+
+## Frequências de Verificação
+
+| Intervalo | Recomendado Para | Créditos/Dia |
+|-----------|------------------|--------------|
+| **5 minutos** | Grupos críticos | 288 |
+| **15 minutos** | Grupos importantes | 96 |
+| **1 hora** | Grupos regulares | 24 |
+| **6 horas** | Grupos de baixa prioridade | 4 |
+| **24 horas** | Monitoramento básico | 1 |
+
+## Casos de Uso
+
+### Sistema de Alertas Inteligente
+
+```javascript
+class MonitorManager {
+  constructor(authToken) {
+    this.token = authToken;
+    this.baseUrl = 'https://api.monitoragrupo.com/v1';
+  }
+  
+  async createCriticalMonitor(groupId, webhookUrl) {
+    const response = await fetch(`${this.baseUrl}/monitors`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: `Monitor Crítico - ${groupId}`,
+        target: {
+          type: 'group',
+          id: groupId
+        },
+        interval: '5m',
+        alerts: {
+          webhook: webhookUrl,
+          email: 'admin@example.com',
+          conditions: [
+            { metric: 'status', operator: 'equals', value: 'inactive' },
+            { metric: 'capacity_percent', operator: 'greater_than', value: 90 },
+            { metric: 'response_time', operator: 'greater_than', value: 5000 }
+          ]
+        },
+        auto_actions: {
+          on_full: 'rotate_to_next_group',
+          on_inactive: 'notify_admin'
+        }
+      })
+    });
+    
+    return await response.json();
+  }
+  
+  async getMonitorInsights(monitorId, period = '7d') {
+    const response = await fetch(
+      `${this.baseUrl}/monitors/${monitorId}/insights?period=${period}`,
+      { headers: { 'Authorization': `Bearer ${this.token}` } }
+    );
+    
+    const data = await response.json();
+    
+    return {
+      uptime: data.uptime_percent,
+      avgResponseTime: data.avg_response_time,
+      incidents: data.total_incidents,
+      availability: data.availability_percent
+    };
+  }
+}
+
+// Uso
+const manager = new MonitorManager('YOUR_TOKEN');
+
+const monitor = await manager.createCriticalMonitor(
+  'group_123',
+  'https://webhook.example.com/alerts'
+);
+
+console.log(`✅ Monitor criado: ${monitor.id}`);
+
+const insights = await manager.getMonitorInsights(monitor.id, '30d');
+console.log(`📊 Uptime: ${insights.uptime}%`);
+console.log(`⚡ Tempo médio: ${insights.avgResponseTime}ms`);
+```
+
+### Dashboard de Saúde
+
+```python
+import requests
+from datetime import datetime, timedelta
+
+class HealthDashboard:
+    def __init__(self, auth_token):
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def get_all_monitors_health(self):
+        """Retorna saúde de todos os monitores"""
+        response = requests.get(
+            f'{self.base_url}/monitors',
+            headers=self.headers
+        )
+        
+        monitors = response.json()['monitors']
+        health_report = []
+        
+        for monitor in monitors:
+            insights = self.get_monitor_insights(monitor['id'])
+            
+            # Calcular score de saúde (0-100)
+            health_score = (
+                insights['uptime_percent'] * 0.4 +
+                (100 - min(insights['avg_response_time'] / 50, 100)) * 0.3 +
+                (100 - min(insights['total_incidents'] * 10, 100)) * 0.3
+            )
+            
+            status = 'healthy' if health_score >= 80 else 'warning' if health_score >= 60 else 'critical'
+            
+            health_report.append({
+                'monitor_id': monitor['id'],
+                'name': monitor['name'],
+                'health_score': round(health_score, 2),
+                'status': status,
+                'uptime': insights['uptime_percent'],
+                'incidents': insights['total_incidents']
+            })
+        
+        return sorted(health_report, key=lambda x: x['health_score'])
+    
+    def get_monitor_insights(self, monitor_id, days=7):
+        response = requests.get(
+            f'{self.base_url}/monitors/{monitor_id}/insights',
+            headers=self.headers,
+            params={'period': f'{days}d'}
+        )
+        return response.json()
+    
+    def print_health_report(self):
+        """Imprime relatório visual de saúde"""
+        monitors = self.get_all_monitors_health()
+        
+        print("\n" + "="*60)
+        print("📊 RELATÓRIO DE SAÚDE DOS MONITORES")
+        print("="*60 + "\n")
+        
+        for monitor in monitors:
+            emoji = '🟢' if monitor['status'] == 'healthy' else '🟡' if monitor['status'] == 'warning' else '🔴'
+            
+            print(f"{emoji} {monitor['name']}")
+            print(f"   Score: {monitor['health_score']}/100")
+            print(f"   Uptime: {monitor['uptime']}%")
+            print(f"   Incidentes: {monitor['incidents']}")
+            print()
+
+# Uso
+dashboard = HealthDashboard('YOUR_TOKEN')
+dashboard.print_health_report()
+```
+
+### Automação de Rotação
+
+```javascript
+async function autoRotateOnCapacity() {
+  const monitors = await fetch('https://api.monitoragrupo.com/v1/monitors', {
+    headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+  }).then(r => r.json());
+  
+  for (const monitor of monitors.monitors) {
+    const insights = await fetch(
+      `https://api.monitoragrupo.com/v1/monitors/${monitor.id}/insights`,
+      { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+    ).then(r => r.json());
+    
+    if (insights.capacity_percent >= 95) {
+      console.log(`🔄 Grupo ${monitor.target.id} está 95% cheio. Rotacionando...`);
+      
+      // Buscar próximo grupo disponível
+      const nextGroup = await findNextAvailableGroup(monitor.campaign_id);
+      
+      if (nextGroup) {
+        // Atualizar SmartLink para apontar para novo grupo
+        await updateSmartLink(monitor.smartlink_id, nextGroup.id);
+        console.log(`✅ SmartLink atualizado para grupo ${nextGroup.name}`);
+      } else {
+        // Alertar que não há grupos disponíveis
+        await sendAlert({
+          level: 'critical',
+          message: 'Nenhum grupo disponível para rotação',
+          campaign_id: monitor.campaign_id
+        });
+      }
+    }
+  }
+}
+
+// Executar a cada 10 minutos
+setInterval(autoRotateOnCapacity, 10 * 60 * 1000);
+```
+
+## Configurações Avançadas
+
+### Alertas Multichannel
+
+```json
+{
+  "alerts": {
+    "webhook": "https://webhook.site/xxx",
+    "email": ["admin@example.com", "ops@example.com"],
+    "slack": "https://hooks.slack.com/services/xxx",
+    "telegram": {
+      "bot_token": "123456:ABC-DEF",
+      "chat_id": "-100123456789"
+    },
+    "sms": "+5511999999999",
+    "conditions": [
+      {
+        "metric": "uptime_percent",
+        "operator": "less_than",
+        "value": 99,
+        "severity": "warning"
+      },
+      {
+        "metric": "response_time",
+        "operator": "greater_than",
+        "value": 3000,
+        "severity": "critical"
+      }
+    ]
+  }
+}
+```
+
+### Políticas de Retry
+
+```json
+{
+  "retry_policy": {
+    "max_attempts": 3,
+    "backoff": "exponential",
+    "initial_delay": 1000,
+    "max_delay": 30000,
+    "on_failure": "alert_and_disable"
+  }
+}
+```
+
+## Métricas e KPIs
+
+<CardGroup cols={2}>
+  <Card title="Uptime" icon="arrow-trend-up">
+    Percentual de tempo em que o recurso esteve disponível
+  </Card>
+  <Card title="MTTR" icon="clock-rotate-left">
+    Mean Time To Recovery - Tempo médio de recuperação
+  </Card>
+  <Card title="MTBF" icon="shield-check">
+    Mean Time Between Failures - Tempo médio entre falhas
+  </Card>
+  <Card title="SLA" icon="handshake">
+    Service Level Agreement - Acordo de nível de serviço
+  </Card>
+</CardGroup>
+
+## Melhores Práticas
+
+<Tip>
+  **Priorize monitores**: Configure intervalos menores apenas para recursos críticos para economizar créditos.
+</Tip>
+
+<Warning>
+  **Evite alertas excessivos**: Configure thresholds realistas para evitar fadiga de alertas.
+</Warning>
+
+<Note>
+  **Combine com webhooks**: Integre monitores com sistemas de alerta (Slack, PagerDuty, etc.) para resposta rápida.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Monitor não está executando">
+    Verifique se o monitor está ativo (`status: 'active'`) e se há créditos suficientes na conta.
+  </Accordion>
+  
+  <Accordion title="Falsos positivos">
+    Ajuste o threshold de timeout e considere adicionar retry policy para lidar com falhas temporárias.
+  </Accordion>
+  
+  <Accordion title="Webhooks não chegam">
+    Confirme que a URL do webhook está acessível e retorna 200 OK. Verifique logs de falha no painel.
+  </Accordion>
+</AccordionGroup>
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="Incidents"
+    icon="triangle-exclamation"
+    href="/api-reference/incidents/overview"
+  >
+    Veja incidentes detectados pelos monitores
+  </Card>
+  <Card
+    title="Groups"
+    icon="users"
+    href="/api-reference/groups/overview"
+  >
+    Gerencie os grupos sendo monitorados
+  </Card>
+  <Card
+    title="SmartLinks"
+    icon="link"
+    href="/api-reference/smartlinks/overview"
+  >
+    Monitore links inteligentes
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="webhook"
+    href="/webhooks/overview"
+  >
+    Configure webhooks para alertas
+  </Card>
+</CardGroup>

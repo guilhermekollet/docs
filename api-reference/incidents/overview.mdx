@@ -1,0 +1,473 @@
+---
+title: 'Incidentes'
+description: 'Monitore e gerencie incidentes em grupos e links do WhatsApp'
+---
+
+## Visão Geral
+
+A API de Incidentes registra e analisa problemas detectados automaticamente em grupos, links e monitores. Receba notificações em tempo real e acesse histórico completo de incidentes.
+
+<CardGroup cols={2}>
+  <Card
+    title="Incidentes de Monitores"
+    icon="radar"
+    href="/api-reference/incidents/monitors"
+  >
+    Veja incidentes detectados por monitores
+  </Card>
+  <Card
+    title="Estatísticas de Monitores"
+    icon="chart-simple"
+    href="/api-reference/incidents/monitors-stats"
+  >
+    Análise estatística de incidentes
+  </Card>
+  <Card
+    title="Incidentes de Links"
+    icon="link-slash"
+    href="/api-reference/incidents/links"
+  >
+    Problemas detectados em SmartLinks
+  </Card>
+  <Card
+    title="Estatísticas de Links"
+    icon="chart-line"
+    href="/api-reference/incidents/links-stats"
+  >
+    Métricas e tendências de links
+  </Card>
+</CardGroup>
+
+## Tipos de Incidentes
+
+### Incidentes de Monitores
+
+**Severidade Alta:**
+- 🔴 **Grupo Inativo**: Grupo removido ou link inválido
+- 🔴 **Timeout**: Grupo não responde após múltiplas tentativas
+- 🔴 **Capacidade Esgotada**: Grupo cheio sem backup
+
+**Severidade Média:**
+- 🟠 **Resposta Lenta**: Tempo de resposta > 5 segundos
+- 🟠 **Capacidade Crítica**: Grupo acima de 90% de ocupação
+- 🟠 **Indisponibilidade Temporária**: Falha momentânea
+
+**Severidade Baixa:**
+- 🟡 **Metadados Alterados**: Mudança em nome/descrição do grupo
+- 🟡 **Capacidade Média**: Grupo acima de 75% de ocupação
+
+### Incidentes de Links
+
+**Problemas Comuns:**
+- Link retorna 404 (Não encontrado)
+- Link retorna 403 (Acesso negado)
+- Redirecionamento inesperado
+- Convite expirado
+- Grupo excluído
+
+## Ciclo de Vida de um Incidente
+
+<Steps>
+  <Step title="Detecção">
+    Monitor identifica problema automaticamente
+  </Step>
+  <Step title="Registro">
+    Incidente é criado com timestamp e contexto
+  </Step>
+  <Step title="Notificação">
+    Alertas são enviados via webhook/email/Slack
+  </Step>
+  <Step title="Investigação">
+    Equipe analisa logs e métricas
+  </Step>
+  <Step title="Resolução">
+    Problema é corrigido (manual ou automático)
+  </Step>
+  <Step title="Fechamento">
+    Incidente marcado como resolvido
+  </Step>
+</Steps>
+
+## Casos de Uso
+
+### Painel de Incidentes em Tempo Real
+
+```javascript
+class IncidentDashboard {
+  constructor(authToken) {
+    this.token = authToken;
+    this.baseUrl = 'https://api.monitoragrupo.com/v1';
+  }
+  
+  async getActiveIncidents() {
+    const [monitorIncidents, linkIncidents] = await Promise.all([
+      fetch(`${this.baseUrl}/incidents/monitors?status=open`, {
+        headers: { 'Authorization': `Bearer ${this.token}` }
+      }).then(r => r.json()),
+      
+      fetch(`${this.baseUrl}/incidents/links?status=open`, {
+        headers: { 'Authorization': `Bearer ${this.token}` }
+      }).then(r => r.json())
+    ]);
+    
+    return {
+      monitors: monitorIncidents.incidents,
+      links: linkIncidents.incidents,
+      total: monitorIncidents.total + linkIncidents.total,
+      critical: this.countBySeverity([...monitorIncidents.incidents, ...linkIncidents.incidents], 'critical')
+    };
+  }
+  
+  countBySeverity(incidents, severity) {
+    return incidents.filter(i => i.severity === severity).length;
+  }
+  
+  async getIncidentStats(period = '7d') {
+    const stats = await fetch(
+      `${this.baseUrl}/incidents/monitors-stats?period=${period}`,
+      { headers: { 'Authorization': `Bearer ${this.token}` } }
+    ).then(r => r.json());
+    
+    return {
+      mttr: stats.mean_time_to_resolution,
+      mtbf: stats.mean_time_between_failures,
+      totalIncidents: stats.total_incidents,
+      resolvedRate: (stats.resolved / stats.total_incidents * 100).toFixed(2),
+      topIssues: stats.by_type.slice(0, 5)
+    };
+  }
+  
+  async renderDashboard() {
+    const [active, stats] = await Promise.all([
+      this.getActiveIncidents(),
+      this.getIncidentStats('30d')
+    ]);
+    
+    console.log('\n🚨 PAINEL DE INCIDENTES\n');
+    console.log('='.repeat(50));
+    console.log(`\n📊 Ativos: ${active.total} (${active.critical} críticos)`);
+    console.log(`   Monitores: ${active.monitors.length}`);
+    console.log(`   Links: ${active.links.length}\n`);
+    
+    console.log('📈 Estatísticas (30 dias):');
+    console.log(`   Total de incidentes: ${stats.totalIncidents}`);
+    console.log(`   Taxa de resolução: ${stats.resolvedRate}%`);
+    console.log(`   MTTR: ${stats.mttr} minutos`);
+    console.log(`   MTBF: ${stats.mtbf} horas\n`);
+    
+    console.log('🔝 Top 5 Problemas:');
+    stats.topIssues.forEach((issue, index) => {
+      console.log(`   ${index + 1}. ${issue.type}: ${issue.count} ocorrências`);
+    });
+  }
+}
+
+// Uso
+const dashboard = new IncidentDashboard('YOUR_TOKEN');
+await dashboard.renderDashboard();
+
+// Atualizar a cada 30 segundos
+setInterval(() => dashboard.renderDashboard(), 30000);
+```
+
+### Sistema de Auto-Resolução
+
+```python
+import requests
+from datetime import datetime, timedelta
+
+class IncidentResolver:
+    def __init__(self, auth_token):
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def auto_resolve_incidents(self):
+        """Tenta resolver incidentes automaticamente"""
+        response = requests.get(
+            f'{self.base_url}/incidents/monitors?status=open',
+            headers=self.headers
+        )
+        
+        incidents = response.json()['incidents']
+        resolved = []
+        
+        for incident in incidents:
+            resolution = None
+            
+            if incident['type'] == 'capacity_full':
+                resolution = self.handle_capacity_full(incident)
+            elif incident['type'] == 'link_inactive':
+                resolution = self.handle_link_inactive(incident)
+            elif incident['type'] == 'slow_response':
+                resolution = self.handle_slow_response(incident)
+            
+            if resolution:
+                self.mark_resolved(incident['id'], resolution)
+                resolved.append(incident)
+        
+        return {
+            'total_processed': len(incidents),
+            'auto_resolved': len(resolved),
+            'manual_review': len(incidents) - len(resolved)
+        }
+    
+    def handle_capacity_full(self, incident):
+        """Rotaciona para próximo grupo disponível"""
+        campaign_id = incident['metadata']['campaign_id']
+        
+        # Buscar próximo grupo disponível
+        response = requests.get(
+            f'{self.base_url}/campaigns/{campaign_id}/groups',
+            headers=self.headers
+        )
+        
+        groups = response.json()['groups']
+        available = [g for g in groups if g['current_members'] < g['max_capacity']]
+        
+        if available:
+            next_group = min(available, key=lambda g: g['current_members'])
+            
+            # Atualizar SmartLink
+            requests.put(
+                f'{self.base_url}/smartlinks/{incident["resource_id"]}/details',
+                headers=self.headers,
+                json={'group_id': next_group['id']}
+            )
+            
+            return f"Rotacionado para grupo {next_group['name']}"
+        
+        return None  # Não foi possível resolver
+    
+    def handle_link_inactive(self, incident):
+        """Desativa link e notifica administrador"""
+        link_id = incident['resource_id']
+        
+        # Desativar link
+        requests.put(
+            f'{self.base_url}/smartlinks/{link_id}/details',
+            headers=self.headers,
+            json={'is_active': False}
+        )
+        
+        # Enviar notificação
+        self.send_notification({
+            'level': 'critical',
+            'message': f'Link {link_id} foi desativado automaticamente',
+            'action_required': 'Verificar e atualizar link'
+        })
+        
+        return "Link desativado, administrador notificado"
+    
+    def handle_slow_response(self, incident):
+        """Ajusta timeout e retry do monitor"""
+        monitor_id = incident['monitor_id']
+        
+        requests.put(
+            f'{self.base_url}/monitors/{monitor_id}',
+            headers=self.headers,
+            json={
+                'timeout': incident['metadata']['timeout'] * 1.5,
+                'retry_attempts': 3
+            }
+        )
+        
+        return "Timeout ajustado, adicionado retry policy"
+    
+    def mark_resolved(self, incident_id, resolution_notes):
+        requests.put(
+            f'{self.base_url}/incidents/{incident_id}/resolve',
+            headers=self.headers,
+            json={
+                'status': 'resolved',
+                'resolution_notes': resolution_notes,
+                'resolved_at': datetime.now().isoformat(),
+                'resolved_by': 'auto_resolver'
+            }
+        )
+    
+    def send_notification(self, data):
+        # Implementar integração com Slack, email, etc.
+        print(f"📧 Notificação: {data['message']}")
+
+# Executar a cada 5 minutos
+resolver = IncidentResolver('YOUR_TOKEN')
+result = resolver.auto_resolve_incidents()
+
+print(f"✅ {result['auto_resolved']} incidentes resolvidos automaticamente")
+print(f"⚠️ {result['manual_review']} requerem revisão manual")
+```
+
+### Análise de Tendências
+
+```javascript
+async function analyzeIncidentTrends(days = 30) {
+  const response = await fetch(
+    `https://api.monitoragrupo.com/v1/incidents/monitors-stats?period=${days}d`,
+    { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+  );
+  
+  const stats = await response.json();
+  
+  // Análise de padrões temporais
+  const hourlyDistribution = stats.by_hour;
+  const peakHour = Object.entries(hourlyDistribution)
+    .sort(([,a], [,b]) => b - a)[0];
+  
+  // Análise de tipos recorrentes
+  const recurringIssues = stats.by_type
+    .filter(t => t.count > 5 && t.recurrence_rate > 0.3);
+  
+  // Calcular tendência (crescente/decrescente)
+  const trend = calculateTrend(stats.daily_incidents);
+  
+  return {
+    peakHour: { hour: peakHour[0], incidents: peakHour[1] },
+    recurringIssues,
+    trend,
+    recommendations: generateRecommendations(stats)
+  };
+}
+
+function calculateTrend(dailyData) {
+  const recent = dailyData.slice(-7).reduce((a, b) => a + b, 0) / 7;
+  const previous = dailyData.slice(-14, -7).reduce((a, b) => a + b, 0) / 7;
+  
+  const change = ((recent - previous) / previous * 100).toFixed(1);
+  
+  return {
+    direction: recent > previous ? 'increasing' : 'decreasing',
+    change: Math.abs(change) + '%',
+    status: recent > previous ? '📈' : '📉'
+  };
+}
+
+function generateRecommendations(stats) {
+  const recommendations = [];
+  
+  if (stats.mttr > 60) {
+    recommendations.push('⚡ MTTR alto - Configure auto-resolução para incidentes comuns');
+  }
+  
+  if (stats.total_incidents > 100) {
+    recommendations.push('🎯 Volume alto - Revise thresholds dos monitores');
+  }
+  
+  const capacityIssues = stats.by_type.find(t => t.type === 'capacity_full');
+  if (capacityIssues && capacityIssues.count > 20) {
+    recommendations.push('➕ Incidentes de capacidade - Adicione mais grupos às campanhas');
+  }
+  
+  return recommendations;
+}
+
+// Uso
+const analysis = await analyzeIncidentTrends(30);
+console.log('📊 ANÁLISE DE TENDÊNCIAS\n');
+console.log(`${analysis.trend.status} Tendência: ${analysis.trend.direction} (${analysis.trend.change})`);
+console.log(`⏰ Pico de incidentes: ${analysis.peakHour.hour}h (${analysis.peakHour.incidents} ocorrências)\n`);
+console.log('💡 Recomendações:');
+analysis.recommendations.forEach(rec => console.log(`   ${rec}`));
+```
+
+## Métricas de SLA
+
+<CardGroup cols={2}>
+  <Card title="MTTR" icon="clock">
+    Mean Time To Resolution - Tempo médio até resolução
+  </Card>
+  <Card title="MTBF" icon="gauge-high">
+    Mean Time Between Failures - Tempo médio entre falhas
+  </Card>
+  <Card title="Uptime" icon="arrow-trend-up">
+    Percentual de disponibilidade dos recursos
+  </Card>
+  <Card title="SLA Compliance" icon="certificate">
+    Conformidade com acordos de nível de serviço
+  </Card>
+</CardGroup>
+
+## Níveis de Severidade
+
+| Nível | Emoji | Descrição | SLA | Ação |
+|-------|-------|-----------|-----|------|
+| **Critical** | 🔴 | Serviço indisponível | 15 min | Alerta imediato |
+| **High** | 🟠 | Degradação severa | 1 hora | Notificação urgente |
+| **Medium** | 🟡 | Problema moderado | 4 horas | Revisão necessária |
+| **Low** | 🟢 | Alerta informativo | 24 horas | Log apenas |
+
+## Webhooks de Incidentes
+
+Configure webhooks para receber notificações em tempo real:
+
+```json
+{
+  "event": "incident.created",
+  "incident": {
+    "id": "inc_abc123",
+    "type": "link_inactive",
+    "severity": "critical",
+    "resource_type": "smartlink",
+    "resource_id": "sl_xyz789",
+    "detected_at": "2026-01-09T14:30:00Z",
+    "message": "Link retornou 404 após 3 tentativas",
+    "metadata": {
+      "monitor_id": "mon_123",
+      "campaign_id": "camp_456",
+      "last_successful_check": "2026-01-09T14:15:00Z"
+    }
+  }
+}
+```
+
+## Melhores Práticas
+
+<AccordionGroup>
+  <Accordion title="Configure Alertas Inteligentes">
+    Use níveis de severidade para direcionar notificações apenas para problemas críticos.
+  </Accordion>
+  
+  <Accordion title="Automatize Resoluções Comuns">
+    Implemente scripts para resolver automaticamente incidentes recorrentes (rotação de grupos, ajuste de timeouts).
+  </Accordion>
+  
+  <Accordion title="Analise Tendências Regularmente">
+    Revise estatísticas semanalmente para identificar padrões e prevenir problemas futuros.
+  </Accordion>
+  
+  <Accordion title="Documente Post-Mortems">
+    Para incidentes críticos, documente causa raiz e ações preventivas.
+  </Accordion>
+</AccordionGroup>
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="Monitors"
+    icon="radar"
+    href="/api-reference/monitors/overview"
+  >
+    Configure monitores que detectam incidentes
+  </Card>
+  <Card
+    title="SmartLinks"
+    icon="link"
+    href="/api-reference/smartlinks/overview"
+  >
+    Gerencie links que podem gerar incidentes
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="webhook"
+    href="/webhooks/overview"
+  >
+    Receba notificações de incidentes
+  </Card>
+  <Card
+    title="Groups"
+    icon="users"
+    href="/api-reference/groups/overview"
+  >
+    Administre grupos relacionados a incidentes
+  </Card>
+</CardGroup>

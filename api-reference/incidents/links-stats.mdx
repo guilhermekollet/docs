@@ -1,0 +1,222 @@
+---
+title: "Estatísticas de Incidentes de Links"
+api: "GET /incidents/links/stats"
+description: "Retorna estatísticas agregadas sobre incidentes de links."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint fornece estatísticas e métricas agregadas sobre incidentes de links, permitindo visualizar tendências e padrões de problemas.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Parâmetros de Query
+
+<ParamField query="start_date" type="string">
+  Data inicial para cálculo das estatísticas (ISO 8601).
+</ParamField>
+
+<ParamField query="end_date" type="string">
+  Data final para cálculo das estatísticas (ISO 8601).
+</ParamField>
+
+<ParamField query="group_by" type="string" default="day">
+  Agrupamento temporal das estatísticas.
+  
+  **Valores aceitos:** `hour`, `day`, `week`, `month`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="summary" type="object">
+  Resumo geral dos incidentes.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="total_incidents" type="number">
+      Total de incidentes no período.
+    </ResponseField>
+    
+    <ResponseField name="open_incidents" type="number">
+      Incidentes ainda abertos.
+    </ResponseField>
+    
+    <ResponseField name="resolved_incidents" type="number">
+      Incidentes resolvidos.
+    </ResponseField>
+    
+    <ResponseField name="average_resolution_time" type="number">
+      Tempo médio de resolução em horas.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="by_type" type="array">
+  Distribuição por tipo de incidente.
+  
+  <Expandable title="Objeto">
+    <ResponseField name="type" type="string">
+      Tipo do incidente.
+    </ResponseField>
+    
+    <ResponseField name="count" type="number">
+      Quantidade de ocorrências.
+    </ResponseField>
+    
+    <ResponseField name="percentage" type="number">
+      Percentual do total.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="by_severity" type="array">
+  Distribuição por severidade.
+</ResponseField>
+
+<ResponseField name="timeline" type="array">
+  Evolução temporal dos incidentes.
+  
+  <Expandable title="Objeto">
+    <ResponseField name="period" type="string">
+      Período (data ou hora).
+    </ResponseField>
+    
+    <ResponseField name="incidents_created" type="number">
+      Novos incidentes criados.
+    </ResponseField>
+    
+    <ResponseField name="incidents_resolved" type="number">
+      Incidentes resolvidos.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.monitora.com/incidents/links/stats?start_date=2025-01-01&end_date=2025-01-31&group_by=day' \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN'
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  start_date: '2025-01-01',
+  end_date: '2025-01-31',
+  group_by: 'day'
+});
+
+const response = await fetch(
+  `https://api.monitora.com/incidents/links/stats?${params}`,
+  {
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/incidents/links/stats"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN"
+}
+params = {
+    "start_date": "2025-01-01",
+    "end_date": "2025-01-31",
+    "group_by": "day"
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "summary": {
+    "total_incidents": 45,
+    "open_incidents": 12,
+    "resolved_incidents": 33,
+    "average_resolution_time": 4.5
+  },
+  "by_type": [
+    {
+      "type": "broken",
+      "count": 20,
+      "percentage": 44.4
+    },
+    {
+      "type": "expired",
+      "count": 15,
+      "percentage": 33.3
+    },
+    {
+      "type": "removed",
+      "count": 10,
+      "percentage": 22.2
+    }
+  ],
+  "by_severity": [
+    {
+      "severity": "critical",
+      "count": 5,
+      "percentage": 11.1
+    },
+    {
+      "severity": "high",
+      "count": 15,
+      "percentage": 33.3
+    },
+    {
+      "severity": "medium",
+      "count": 20,
+      "percentage": 44.4
+    },
+    {
+      "severity": "low",
+      "count": 5,
+      "percentage": 11.1
+    }
+  ],
+  "timeline": [
+    {
+      "period": "2025-01-01",
+      "incidents_created": 3,
+      "incidents_resolved": 2
+    },
+    {
+      "period": "2025-01-02",
+      "incidents_created": 5,
+      "incidents_resolved": 4
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+## Visualizações Sugeridas
+
+<Tip>
+  Use estas estatísticas para criar visualizações poderosas:
+  - **Gráfico de Pizza:** Distribuição por tipo ou severidade
+  - **Gráfico de Linha:** Timeline de criação vs resolução
+  - **KPI Cards:** Total, abertos, tempo médio de resolução
+  - **Heatmap:** Incidentes por dia da semana/hora do dia
+</Tip>

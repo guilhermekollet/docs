@@ -1,0 +1,172 @@
+---
+title: "Criar Checkout"
+api: "POST /subscriptions/checkout"
+description: "Cria uma sessão de checkout do Stripe para assinatura de planos."
+auth: "bearer"
+---
+
+## Descrição
+
+Este endpoint cria uma sessão de checkout do Stripe, redirecionando o usuário para completar o pagamento e assinar um plano.
+
+## Autenticação
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token do usuário autenticado.
+  
+  **Formato:** `Bearer {access_token}`
+</ParamField>
+
+## Corpo da Requisição
+
+<ParamField body="productId" type="string" required>
+  ID do produto/plano no Stripe.
+  
+  **Exemplo:** `prod_ABC123`
+</ParamField>
+
+<ParamField body="interval" type="string">
+  Intervalo de cobrança desejado.
+  
+  **Valores aceitos:** `month`, `year`
+  
+  **Padrão:** `month`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="sessionId" type="string">
+  ID da sessão de checkout criada.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  URL para redirecionar o usuário para completar o pagamento.
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitora.com/subscriptions/checkout \
+  --header 'Authorization: Bearer SEU_ACCESS_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "productId": "prod_ABC123",
+    "interval": "month"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.monitora.com/subscriptions/checkout',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer SEU_ACCESS_TOKEN',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      productId: 'prod_ABC123',
+      interval: 'month'
+    })
+  }
+);
+
+const data = await response.json();
+
+// Redirecionar para o checkout
+window.location.href = data.url;
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/subscriptions/checkout"
+headers = {
+    "Authorization": "Bearer SEU_ACCESS_TOKEN",
+    "Content-Type": "application/json"
+}
+payload = {
+    "productId": "prod_ABC123",
+    "interval": "month"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+result = response.json()
+
+# URL para redirecionar o usuário
+checkout_url = result['url']
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "sessionId": "cs_test_a1b2c3d4e5f6g7h8i9j0",
+  "url": "https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6g7h8i9j0#..."
+}
+```
+
+```json Erro - Product ID Inválido (400)
+{
+  "statusCode": 400,
+  "message": "productId is required",
+  "error": "Bad Request"
+}
+```
+
+</ResponseExample>
+
+## Fluxo de Checkout
+
+<Steps>
+  <Step title="Criar Sessão">
+    Chame este endpoint com o productId do plano desejado.
+  </Step>
+  
+  <Step title="Redirecionar Usuário">
+    Redirecione o usuário para a URL retornada.
+  </Step>
+  
+  <Step title="Usuário Completa Pagamento">
+    O usuário preenche os dados de pagamento no Stripe.
+  </Step>
+  
+  <Step title="Webhook Notifica Sistema">
+    O Stripe envia webhook confirmando a assinatura.
+  </Step>
+  
+  <Step title="Assinatura Ativada">
+    O usuário é redirecionado de volta e a assinatura está ativa.
+  </Step>
+</Steps>
+
+## Planos Disponíveis
+
+| Plano | Product ID | Mensal | Anual |
+|-------|-----------|--------|-------|
+| Basic | prod_BASIC | R$ 49,90 | R$ 499,00 |
+| Professional | prod_PRO | R$ 99,90 | R$ 999,00 |
+| Enterprise | prod_ENT | Customizado | Customizado |
+
+<Note>
+  Os Product IDs acima são exemplos. Consulte o dashboard do Stripe para os IDs reais dos seus produtos.
+</Note>
+
+## Notas Importantes
+
+<Info>
+  A sessão de checkout expira após 24 horas. Se o usuário não completar o pagamento, será necessário criar uma nova sessão.
+</Info>
+
+<Tip>
+  Use o parâmetro `interval=year` para oferecer desconto em planos anuais e aumentar a retenção.
+</Tip>
+
+<Warning>
+  Certifique-se de configurar corretamente as URLs de sucesso e cancelamento no dashboard do Stripe para melhorar a experiência do usuário.
+</Warning>

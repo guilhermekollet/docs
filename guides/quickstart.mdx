@@ -1,0 +1,286 @@
+---
+title: 'Início Rápido'
+description: 'Configure e faça sua primeira chamada de API em minutos'
+---
+
+## Introdução
+
+Este guia vai te ajudar a fazer sua primeira chamada de API em menos de 5 minutos.
+
+<Note>
+  Se você ainda não tem uma conta, [cadastre-se aqui](https://example.com/signup) para começar.
+</Note>
+
+## Passo a Passo
+
+<Steps>
+  <Step title="Obtenha suas credenciais de API">
+    1. Faça login no [painel de controle](https://dashboard.example.com)
+    2. Navegue até **Configurações → API Keys**
+    3. Clique em **"Gerar Nova Chave"**
+    4. Copie e armazene sua chave com segurança
+    
+    <Warning>
+      Sua chave de API será exibida apenas uma vez. Guarde-a em um local seguro!
+    </Warning>
+  </Step>
+
+  <Step title="Configure seu ambiente">
+    Instale as bibliotecas necessárias para seu ambiente:
+
+    <CodeGroup>
+      ```bash Node.js
+      npm install axios
+      # ou
+      yarn add axios
+      ```
+
+      ```bash Python
+      pip install requests
+      ```
+
+      ```bash PHP
+      # Usando Composer
+      composer require guzzlehttp/guzzle
+      ```
+
+      ```bash Ruby
+      gem install httparty
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Faça sua primeira requisição">
+    Teste a conectividade com o endpoint de status:
+
+    <CodeGroup>
+      ```javascript Node.js
+      const axios = require('axios');
+
+      const apiKey = 'YOUR_API_KEY';
+      const baseURL = 'https://api.example.com/v1';
+
+      async function testAPI() {
+        try {
+          const response = await axios.get(`${baseURL}/status`, {
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log('Status:', response.data);
+        } catch (error) {
+          console.error('Erro:', error.response?.data || error.message);
+        }
+      }
+
+      testAPI();
+      ```
+
+      ```python Python
+      import requests
+      import os
+
+      api_key = 'YOUR_API_KEY'
+      base_url = 'https://api.example.com/v1'
+
+      headers = {
+          'Authorization': f'Bearer {api_key}',
+          'Content-Type': 'application/json'
+      }
+
+      try:
+          response = requests.get(f'{base_url}/status', headers=headers)
+          response.raise_for_status()
+          print('Status:', response.json())
+      except requests.exceptions.RequestException as e:
+          print('Erro:', e)
+      ```
+
+      ```php PHP
+      <?php
+      require 'vendor/autoload.php';
+
+      use GuzzleHttp\Client;
+
+      $apiKey = 'YOUR_API_KEY';
+      $baseURL = 'https://api.example.com/v1';
+
+      $client = new Client([
+          'base_uri' => $baseURL,
+          'headers' => [
+              'Authorization' => 'Bearer ' . $apiKey,
+              'Content-Type' => 'application/json'
+          ]
+      ]);
+
+      try {
+          $response = $client->get('/status');
+          echo 'Status: ' . $response->getBody();
+      } catch (Exception $e) {
+          echo 'Erro: ' . $e->getMessage();
+      }
+      ?>
+      ```
+
+      ```ruby Ruby
+      require 'httparty'
+
+      api_key = 'YOUR_API_KEY'
+      base_url = 'https://api.example.com/v1'
+
+      headers = {
+        'Authorization' => "Bearer #{api_key}",
+        'Content-Type' => 'application/json'
+      }
+
+      begin
+        response = HTTParty.get("#{base_url}/status", headers: headers)
+        puts "Status: #{response.body}"
+      rescue => e
+        puts "Erro: #{e.message}"
+      end
+      ```
+    </CodeGroup>
+
+    **Resposta esperada:**
+    ```json
+    {
+      "status": "operational",
+      "version": "1.0.0",
+      "timestamp": "2026-01-09T10:30:00Z"
+    }
+    ```
+  </Step>
+
+  <Step title="Crie um recurso">
+    Agora vamos criar um recurso de exemplo (conta):
+
+    <CodeGroup>
+      ```javascript Node.js
+      async function createAccount() {
+        try {
+          const response = await axios.post(`${baseURL}/accounts`, {
+            name: 'Minha Primeira Conta',
+            email: 'exemplo@email.com',
+            type: 'business'
+          }, {
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log('Conta criada:', response.data);
+        } catch (error) {
+          console.error('Erro:', error.response?.data || error.message);
+        }
+      }
+      ```
+
+      ```python Python
+      data = {
+          'name': 'Minha Primeira Conta',
+          'email': 'exemplo@email.com',
+          'type': 'business'
+      }
+
+      try:
+          response = requests.post(
+              f'{base_url}/accounts',
+              json=data,
+              headers=headers
+          )
+          response.raise_for_status()
+          print('Conta criada:', response.json())
+      except requests.exceptions.RequestException as e:
+          print('Erro:', e)
+      ```
+
+      ```php PHP
+      try {
+          $response = $client->post('/accounts', [
+              'json' => [
+                  'name' => 'Minha Primeira Conta',
+                  'email' => 'exemplo@email.com',
+                  'type' => 'business'
+              ]
+          ]);
+          echo 'Conta criada: ' . $response->getBody();
+      } catch (Exception $e) {
+          echo 'Erro: ' . $e->getMessage();
+      }
+      ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+<Check>
+  **Parabéns!** Você acabou de fazer sua primeira chamada de API com sucesso.
+</Check>
+
+## Próximos Passos
+
+Agora que você configurou com sucesso, explore mais recursos:
+
+<CardGroup cols={2}>
+  <Card
+    title="Explorar Endpoints"
+    icon="code"
+    href="/api-reference"
+  >
+    Veja todos os endpoints disponíveis
+  </Card>
+  <Card
+    title="Melhores Práticas"
+    icon="lightbulb"
+    href="/guides/best-practices"
+  >
+    Aprenda como usar a API eficientemente
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="webhook"
+    href="/webhooks/overview"
+  >
+    Configure notificações em tempo real
+  </Card>
+  <Card
+    title="Exemplos de Código"
+    icon="file-code"
+    href="/guides/code-examples"
+  >
+    Veja exemplos completos de implementação
+  </Card>
+</CardGroup>
+
+## Precisa de Ajuda?
+
+<AccordionGroup>
+  <Accordion icon="question" title="A API não está respondendo">
+    Verifique se:
+    - Sua chave de API está correta
+    - Você está usando o endpoint correto: `https://api.example.com/v1`
+    - O header `Authorization` está formatado corretamente
+  </Accordion>
+
+  <Accordion icon="exclamation-triangle" title="Erro 401 Unauthorized">
+    Isso geralmente indica um problema com sua autenticação:
+    - Verifique se a chave de API está correta
+    - Certifique-se de incluir o prefixo `Bearer` no header
+    - Confirme que a chave não foi revogada
+  </Accordion>
+
+  <Accordion icon="clock" title="Erro 429 Too Many Requests">
+    Você atingiu o limite de taxa. Veja [Limites de Taxa](/guides/rate-limits) para mais informações.
+  </Accordion>
+</AccordionGroup>
+
+<Card
+  title="Suporte"
+  icon="headset"
+  href="mailto:support@example.com"
+>
+  Ainda com dúvidas? Entre em contato com nosso suporte
+</Card>

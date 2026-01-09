@@ -1,0 +1,314 @@
+---
+title: 'Grupos'
+description: 'Gerencie grupos do WhatsApp individualmente'
+---
+
+## Visão Geral
+
+A API de Grupos permite gerenciar grupos do WhatsApp de forma individual, incluindo atualização de imagens, informações e configurações específicas.
+
+<CardGroup cols={2}>
+  <Card
+    title="Atualizar Imagem"
+    icon="image"
+    href="/api-reference/groups/update-image"
+  >
+    Atualize a imagem de perfil do grupo
+  </Card>
+</CardGroup>
+
+## Funcionalidades
+
+### Personalização
+Atualize informações visuais e textuais dos grupos para melhor identificação e organização.
+
+### Gestão Individual
+Controle fino sobre cada grupo, independente da campanha.
+
+### Automação
+Integre com outros endpoints para automação completa de gestão de grupos.
+
+## Casos de Uso
+
+### Atualização em Lote de Imagens
+
+```javascript
+async function updateGroupImages(groups, imageUrl) {
+  const results = [];
+  
+  for (const group of groups) {
+    try {
+      const response = await fetch(
+        `https://api.monitoragrupo.com/v1/groups/${group.id}/image`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer YOUR_TOKEN',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image_url: imageUrl })
+        }
+      );
+      
+      const data = await response.json();
+      results.push({ group: group.name, success: true, data });
+    } catch (error) {
+      results.push({ group: group.name, success: false, error: error.message });
+    }
+  }
+  
+  return results;
+}
+
+// Uso
+const groupsToUpdate = [
+  { id: 'group_1', name: 'Grupo Promoção 01' },
+  { id: 'group_2', name: 'Grupo Promoção 02' }
+];
+
+const results = await updateGroupImages(
+  groupsToUpdate,
+  'https://example.com/images/promo-black-friday.jpg'
+);
+
+console.log(results);
+```
+
+### Sistema de Branding Automático
+
+```python
+import requests
+from datetime import datetime
+
+class GroupBrandingManager:
+    def __init__(self, auth_token):
+        self.headers = {'Authorization': f'Bearer {auth_token}'}
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+    
+    def update_seasonal_branding(self, campaign_id, season):
+        """Atualiza branding dos grupos para campanhas sazonais"""
+        # Obter grupos da campanha
+        response = requests.get(
+            f'{self.base_url}/campaigns/{campaign_id}/groups',
+            headers=self.headers
+        )
+        
+        groups = response.json()['groups']
+        
+        # Mapear imagens por estação
+        seasonal_images = {
+            'black_friday': 'https://cdn.example.com/bf-2026.jpg',
+            'natal': 'https://cdn.example.com/natal-2026.jpg',
+            'ano_novo': 'https://cdn.example.com/ano-novo-2026.jpg',
+            'pascoa': 'https://cdn.example.com/pascoa-2026.jpg'
+        }
+        
+        image_url = seasonal_images.get(season)
+        if not image_url:
+            raise ValueError(f"Estação '{season}' não configurada")
+        
+        # Atualizar todos os grupos
+        updated = []
+        for group in groups:
+            response = requests.put(
+                f'{self.base_url}/groups/{group["id"]}/image',
+                headers=self.headers,
+                json={'image_url': image_url}
+            )
+            
+            if response.status_code == 200:
+                updated.append(group['name'])
+        
+        return {
+            'season': season,
+            'groups_updated': len(updated),
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    def apply_ab_test_images(self, campaign_id, image_a, image_b):
+        """Aplica teste A/B de imagens nos grupos"""
+        response = requests.get(
+            f'{self.base_url}/campaigns/{campaign_id}/groups',
+            headers=self.headers
+        )
+        
+        groups = response.json()['groups']
+        
+        # Dividir grupos em dois conjuntos
+        half = len(groups) // 2
+        group_a = groups[:half]
+        group_b = groups[half:]
+        
+        # Aplicar imagem A
+        for group in group_a:
+            requests.put(
+                f'{self.base_url}/groups/{group["id"]}/image',
+                headers=self.headers,
+                json={'image_url': image_a, 'ab_test': 'variant_a'}
+            )
+        
+        # Aplicar imagem B
+        for group in group_b:
+            requests.put(
+                f'{self.base_url}/groups/{group["id"]}/image',
+                headers=self.headers,
+                json={'image_url': image_b, 'ab_test': 'variant_b'}
+            )
+        
+        return {
+            'variant_a_groups': len(group_a),
+            'variant_b_groups': len(group_b),
+            'test_started': datetime.now().isoformat()
+        }
+
+# Uso
+manager = GroupBrandingManager('YOUR_TOKEN')
+
+# Campanha sazonal
+result = manager.update_seasonal_branding('campaign_123', 'black_friday')
+print(f"✅ {result['groups_updated']} grupos atualizados para {result['season']}")
+
+# Teste A/B
+ab_result = manager.apply_ab_test_images(
+    'campaign_123',
+    'https://cdn.example.com/version-a.jpg',
+    'https://cdn.example.com/version-b.jpg'
+)
+print(f"🧪 Teste A/B iniciado: {ab_result['variant_a_groups']} vs {ab_result['variant_b_groups']}")
+```
+
+### Validação e Otimização de Imagens
+
+```javascript
+class ImageOptimizer {
+  async validateAndOptimize(imageUrl) {
+    // Verificar dimensões recomendadas
+    const img = await this.loadImage(imageUrl);
+    
+    const recommendations = [];
+    
+    if (img.width < 640 || img.height < 640) {
+      recommendations.push('⚠️ Imagem muito pequena. Recomendado: 640x640px mínimo');
+    }
+    
+    if (img.width > 1920 || img.height > 1920) {
+      recommendations.push('⚠️ Imagem muito grande. Otimize para reduzir tamanho');
+    }
+    
+    const aspectRatio = img.width / img.height;
+    if (aspectRatio < 0.8 || aspectRatio > 1.25) {
+      recommendations.push('⚠️ Proporção inadequada. Use imagens quadradas (1:1)');
+    }
+    
+    return {
+      valid: recommendations.length === 0,
+      dimensions: { width: img.width, height: img.height },
+      aspectRatio,
+      recommendations
+    };
+  }
+  
+  async updateGroupWithValidation(groupId, imageUrl) {
+    const validation = await this.validateAndOptimize(imageUrl);
+    
+    if (!validation.valid) {
+      console.warn('Avisos de validação:', validation.recommendations);
+      // Prosseguir mesmo com avisos, mas notificar
+    }
+    
+    const response = await fetch(
+      `https://api.monitoragrupo.com/v1/groups/${groupId}/image`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer YOUR_TOKEN',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image_url: imageUrl })
+      }
+    );
+    
+    return {
+      updated: response.ok,
+      validation
+    };
+  }
+  
+  loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+}
+```
+
+## Especificações de Imagem
+
+<Note>
+  **Formato recomendado**: JPG ou PNG  
+  **Dimensões**: 640x640px (mínimo) até 1920x1920px  
+  **Proporção**: Quadrada (1:1) para melhor visualização  
+  **Tamanho**: Máximo 2MB
+</Note>
+
+## Melhores Práticas
+
+<AccordionGroup>
+  <Accordion title="Use Imagens de Alta Qualidade">
+    Imagens nítidas e profissionais aumentam a credibilidade e taxa de conversão.
+  </Accordion>
+  
+  <Accordion title="Mantenha Consistência Visual">
+    Use o mesmo estilo visual em todos os grupos de uma campanha para fortalecer a identidade da marca.
+  </Accordion>
+  
+  <Accordion title="Otimize para Mobile">
+    A maioria dos usuários acessa pelo celular. Certifique-se de que textos na imagem sejam legíveis em telas pequenas.
+  </Accordion>
+  
+  <Accordion title="Atualize Sazonalmente">
+    Mude imagens conforme campanhas sazonais (Black Friday, Natal, etc.) para manter relevância.
+  </Accordion>
+</AccordionGroup>
+
+## Checklist de Qualidade
+
+<Steps>
+  <Step title="Dimensões Corretas">
+    Verifique se a imagem tem pelo menos 640x640px
+  </Step>
+  <Step title="Formato Adequado">
+    Use JPG (fotos) ou PNG (logos/ilustrações)
+  </Step>
+  <Step title="Tamanho do Arquivo">
+    Comprima para menos de 2MB sem perder qualidade
+  </Step>
+  <Step title="Legibilidade">
+    Teste em diferentes tamanhos de tela
+  </Step>
+  <Step title="Branding">
+    Inclua elementos da marca de forma sutil
+  </Step>
+</Steps>
+
+## Integrações Relacionadas
+
+<CardGroup cols={2}>
+  <Card
+    title="Campanhas"
+    icon="bullhorn"
+    href="/api-reference/campaigns/overview"
+  >
+    Gerencie campanhas com múltiplos grupos
+  </Card>
+  <Card
+    title="Monitors"
+    icon="radar"
+    href="/api-reference/monitors/overview"
+  >
+    Monitore status e saúde dos grupos
+  </Card>
+</CardGroup>

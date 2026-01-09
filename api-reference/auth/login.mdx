@@ -1,0 +1,137 @@
+---
+title: "Login"
+api: "POST /auth/login"
+description: "Realiza autenticação na API com email e senha, retornando tokens de acesso."
+---
+
+## Descrição
+
+Este endpoint permite que usuários realizem login na plataforma Monitora API utilizando suas credenciais (email e senha). Em caso de sucesso, retorna tokens JWT (access_token e refresh_token) que devem ser utilizados para autenticação em requisições subsequentes.
+
+## Corpo da Requisição
+
+<ParamField body="email" type="string" required>
+  Email do usuário cadastrado na plataforma.
+  
+  **Exemplo:** `usuario@exemplo.com`
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Senha do usuário.
+  
+  **Exemplo:** `senhaSegura123`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="message" type="string">
+  Mensagem de confirmação do login.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Objeto contendo os tokens de autenticação.
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="access_token" type="string">
+      Token JWT para autenticação nas requisições (Bearer Token).
+    </ResponseField>
+    
+    <ResponseField name="refresh_token" type="string">
+      Token para renovação do access_token quando expirar.
+    </ResponseField>
+    
+    <ResponseField name="expires_in" type="number">
+      Tempo de expiração do access_token em segundos.
+    </ResponseField>
+    
+    <ResponseField name="token_type" type="string">
+      Tipo do token (geralmente "Bearer").
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitora.com/auth/login \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "email": "usuario@exemplo.com",
+    "password": "senhaSegura123"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.monitora.com/auth/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    email: 'usuario@exemplo.com',
+    password: 'senhaSegura123'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/auth/login"
+payload = {
+    "email": "usuario@exemplo.com",
+    "password": "senhaSegura123"
+}
+
+response = requests.post(url, json=payload)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "message": "Login realizado com sucesso",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expires_in": 3600,
+    "token_type": "Bearer"
+  }
+}
+```
+
+```json Erro - Credenciais Inválidas (401)
+{
+  "statusCode": 401,
+  "message": "Credenciais inválidas",
+  "error": "Unauthorized"
+}
+```
+
+</ResponseExample>
+
+## Notas Importantes
+
+<Note>
+  Guarde o **access_token** de forma segura. Ele deve ser incluído no header `Authorization: Bearer {access_token}` em todas as requisições que exigem autenticação.
+</Note>
+
+<Warning>
+  O **access_token** possui tempo de expiração. Utilize o endpoint `/auth/refresh` com o **refresh_token** para obter um novo access_token quando necessário.
+</Warning>
+
+## Próximos Passos
+
+Após realizar o login:
+- Use o [endpoint /auth/me](/api-reference/auth/me) para obter informações do usuário autenticado
+- Quando o token expirar, utilize o [endpoint /auth/refresh](/api-reference/auth/refresh) para renovar
+- Para encerrar a sessão, utilize o [endpoint /auth/logout](/api-reference/auth/logout)

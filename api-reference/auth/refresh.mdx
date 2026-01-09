@@ -1,0 +1,132 @@
+---
+title: "Renovar Token"
+api: "POST /auth/refresh"
+description: "Renova o access_token utilizando um refresh_token válido."
+---
+
+## Descrição
+
+Quando o access_token expira, utilize este endpoint para obter um novo token de acesso sem precisar fazer login novamente. É necessário fornecer o refresh_token recebido durante o login.
+
+## Corpo da Requisição
+
+<ParamField body="refresh_token" type="string" required>
+  Token de atualização obtido no login.
+  
+  **Exemplo:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+</ParamField>
+
+## Resposta de Sucesso
+
+<ResponseField name="access_token" type="string">
+  Novo token JWT para autenticação.
+</ResponseField>
+
+<ResponseField name="refresh_token" type="string">
+  Novo refresh_token (pode ser o mesmo ou um novo).
+</ResponseField>
+
+<ResponseField name="expires_in" type="number">
+  Tempo de expiração do novo access_token em segundos.
+</ResponseField>
+
+<ResponseField name="token_type" type="string">
+  Tipo do token (geralmente "Bearer").
+</ResponseField>
+
+## Exemplos de Código
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitora.com/auth/refresh \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.monitora.com/auth/refresh', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    refresh_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+url = "https://api.monitora.com/auth/refresh"
+payload = {
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+response = requests.post(url, json=payload)
+print(response.json())
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso (200)
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.NEW_TOKEN...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600,
+  "token_type": "Bearer"
+}
+```
+
+```json Erro - Token Inválido (401)
+{
+  "statusCode": 401,
+  "message": "Refresh token inválido ou expirado",
+  "error": "Unauthorized"
+}
+```
+
+</ResponseExample>
+
+## Fluxo de Autenticação
+
+<Steps>
+  <Step title="Login Inicial">
+    Faça login usando o endpoint `/auth/login` para obter access_token e refresh_token.
+  </Step>
+  
+  <Step title="Utilizar Access Token">
+    Use o access_token em todas as requisições autenticadas até que expire.
+  </Step>
+  
+  <Step title="Token Expira">
+    Quando receber erro 401, use este endpoint com o refresh_token.
+  </Step>
+  
+  <Step title="Atualizar Tokens">
+    Armazene o novo access_token e continue usando a API.
+  </Step>
+</Steps>
+
+## Notas Importantes
+
+<Tip>
+  Implemente um mecanismo automático de renovação de token em sua aplicação para melhorar a experiência do usuário.
+</Tip>
+
+<Warning>
+  O refresh_token também pode expirar. Se isso ocorrer, será necessário fazer login novamente através do endpoint `/auth/login`.
+</Warning>
+
+<Info>
+  Por segurança, alguns sistemas emitem um novo refresh_token a cada renovação. Sempre armazene o refresh_token mais recente retornado.
+</Info>

@@ -1,0 +1,435 @@
+---
+title: 'Obter Campanha por Short Code'
+api: 'GET /smartlinks'
+description: 'Recupera detalhes de uma campanha SmartLink pelo código curto'
+---
+
+## Descrição
+
+Busca informações completas de uma campanha SmartLink utilizando seu código curto (short code) único. Retorna todos os detalhes da campanha incluindo estatísticas, configurações e links associados.
+
+## Autenticação
+
+<CodeGroup>
+```bash Bearer Token
+Authorization: Bearer seu_token_jwt
+```
+
+```bash API Token
+x-api-token: seu_api_token
+```
+</CodeGroup>
+
+## Query Parameters
+
+<ParamField query="shortCode" type="string" required>
+  Código curto único da campanha SmartLink.
+  
+  **Formato**: Geralmente 6-8 caracteres alfanuméricos (ex: `ABC123`, `3M8NZ5`)
+  
+  **Case sensitive**: Sim, use exatamente como foi gerado
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string" required>
+  ID único da campanha (UUID)
+</ResponseField>
+
+<ResponseField name="short_code" type="string" required>
+  Código curto da campanha
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Nome descritivo da campanha
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Status atual da campanha
+  
+  **Valores possíveis:**
+  - `active` - Campanha ativa
+  - `paused` - Campanha pausada
+  - `expired` - Campanha expirada
+  - `draft` - Rascunho
+</ResponseField>
+
+<ResponseField name="target_url" type="string" required>
+  URL de destino final (link do WhatsApp)
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+  Data de criação (ISO 8601)
+</ResponseField>
+
+<ResponseField name="updated_at" type="string" required>
+  Data da última atualização (ISO 8601)
+</ResponseField>
+
+<ResponseField name="statistics" type="object">
+  Estatísticas da campanha
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="total_clicks" type="number">
+      Total de cliques recebidos
+    </ResponseField>
+    <ResponseField name="total_entries" type="number">
+      Total de entradas confirmadas no grupo
+    </ResponseField>
+    <ResponseField name="conversion_rate" type="number">
+      Taxa de conversão (entradas/cliques) em porcentagem
+    </ResponseField>
+    <ResponseField name="last_click_at" type="string">
+      Data do último clique
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="settings" type="object">
+  Configurações da campanha
+  
+  <Expandable title="Propriedades">
+    <ResponseField name="redirect_enabled" type="boolean">
+      Se redirecionamento está ativo
+    </ResponseField>
+    <ResponseField name="tracking_enabled" type="boolean">
+      Se rastreamento está ativo
+    </ResponseField>
+    <ResponseField name="max_capacity" type="number">
+      Capacidade máxima do grupo
+    </ResponseField>
+    <ResponseField name="current_members" type="number">
+      Membros atuais no grupo
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="groups" type="array">
+  Lista de grupos associados à campanha
+  
+  <Expandable title="Propriedades do Grupo">
+    <ResponseField name="group_id" type="string">
+      ID único do grupo
+    </ResponseField>
+    <ResponseField name="group_name" type="string">
+      Nome do grupo
+    </ResponseField>
+    <ResponseField name="invite_code" type="string">
+      Código de convite do WhatsApp
+    </ResponseField>
+    <ResponseField name="is_active" type="boolean">
+      Se o grupo está ativo na rotação
+    </ResponseField>
+    <ResponseField name="current_members" type="number">
+      Membros atuais
+    </ResponseField>
+    <ResponseField name="max_members" type="number">
+      Capacidade máxima
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.example.com/v1/smartlinks?shortCode=ABC123' \
+  --header 'Authorization: Bearer YOUR_TOKEN'
+```
+
+```javascript JavaScript
+const shortCode = 'ABC123';
+
+const response = await fetch(
+  `https://api.example.com/v1/smartlinks?shortCode=${shortCode}`,
+  {
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN'
+    }
+  }
+);
+
+const campaign = await response.json();
+console.log('Campanha:', campaign.name);
+console.log('Total de cliques:', campaign.statistics.total_clicks);
+```
+
+```python Python
+import requests
+
+short_code = 'ABC123'
+
+response = requests.get(
+    f'https://api.example.com/v1/smartlinks',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'},
+    params={'shortCode': short_code}
+)
+
+campaign = response.json()
+print(f"Campanha: {campaign['name']}")
+print(f"Total de cliques: {campaign['statistics']['total_clicks']}")
+```
+
+```php PHP
+<?php
+$shortCode = 'ABC123';
+
+$curl = curl_init();
+curl_setopt_array($curl, [
+  CURLOPT_URL => "https://api.example.com/v1/smartlinks?shortCode=" . $shortCode,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER => [
+    "Authorization: Bearer YOUR_TOKEN"
+  ]
+]);
+
+$response = curl_exec($curl);
+$campaign = json_decode($response, true);
+
+echo "Campanha: " . $campaign['name'] . "\n";
+echo "Total de cliques: " . $campaign['statistics']['total_clicks'];
+curl_close($curl);
+?>
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Sucesso
+{
+  "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "short_code": "ABC123",
+  "name": "Promoção Black Friday 2026",
+  "status": "active",
+  "target_url": "https://chat.whatsapp.com/DPS1V9YJE7N5LOGPXXa1gh",
+  "created_at": "2026-01-01T10:00:00.000Z",
+  "updated_at": "2026-01-09T10:30:00.000Z",
+  "statistics": {
+    "total_clicks": 1523,
+    "total_entries": 892,
+    "conversion_rate": 58.57,
+    "last_click_at": "2026-01-09T10:28:15.000Z"
+  },
+  "settings": {
+    "redirect_enabled": true,
+    "tracking_enabled": true,
+    "max_capacity": 256,
+    "current_members": 184
+  },
+  "groups": [
+    {
+      "group_id": "cc2be923-9984-4089-9dbd-9206ece0b847",
+      "group_name": "Promoção Black Friday #01",
+      "invite_code": "DPS1V9YJE7N5LOGPXXa1gh",
+      "is_active": true,
+      "current_members": 184,
+      "max_members": 256
+    },
+    {
+      "group_id": "dd3cf034-aa95-5190-acce-ad17fdf1c958",
+      "group_name": "Promoção Black Friday #02",
+      "invite_code": "FJsMdw8ozjv7TkYhD6hhWz",
+      "is_active": false,
+      "current_members": 45,
+      "max_members": 256
+    }
+  ]
+}
+```
+
+```json Não Encontrado
+{
+  "error": {
+    "code": "not_found",
+    "message": "Campanha não encontrada",
+    "status": 404,
+    "details": {
+      "short_code": "INVALID"
+    }
+  }
+}
+```
+
+```json Erro - Short Code Ausente
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Parâmetro 'shortCode' é obrigatório",
+    "status": 400,
+    "details": {
+      "field": "shortCode",
+      "reason": "required"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Códigos de Status
+
+| Código | Descrição |
+|--------|-----------|
+| `200` | Campanha encontrada e retornada com sucesso |
+| `400` | Parâmetro shortCode ausente ou inválido |
+| `401` | Token de autenticação inválido |
+| `404` | Campanha não encontrada |
+| `429` | Limite de taxa excedido |
+| `500` | Erro interno do servidor |
+
+## Casos de Uso
+
+### Dashboard de Campanha
+
+```javascript
+async function fetchCampaignDashboard(shortCode) {
+  const response = await fetch(
+    `https://api.example.com/v1/smartlinks?shortCode=${shortCode}`,
+    {
+      headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+    }
+  );
+
+  const campaign = await response.json();
+
+  return {
+    name: campaign.name,
+    status: campaign.status,
+    metrics: {
+      clicks: campaign.statistics.total_clicks,
+      entries: campaign.statistics.total_entries,
+      conversionRate: `${campaign.statistics.conversion_rate.toFixed(2)}%`
+    },
+    activeGroups: campaign.groups.filter(g => g.is_active).length,
+    totalGroups: campaign.groups.length,
+    capacity: {
+      current: campaign.settings.current_members,
+      max: campaign.settings.max_capacity,
+      percentage: (campaign.settings.current_members / campaign.settings.max_capacity * 100).toFixed(1)
+    }
+  };
+}
+
+// Uso
+const dashboard = await fetchCampaignDashboard('ABC123');
+console.log('Taxa de conversão:', dashboard.metrics.conversionRate);
+```
+
+### Monitoramento de Capacidade
+
+```python
+import requests
+
+def check_campaign_capacity(short_code, threshold=0.8):
+    """Verifica se a campanha está próxima da capacidade máxima"""
+    response = requests.get(
+        'https://api.example.com/v1/smartlinks',
+        headers={'Authorization': 'Bearer YOUR_TOKEN'},
+        params={'shortCode': short_code}
+    )
+    
+    campaign = response.json()
+    settings = campaign['settings']
+    
+    usage_percentage = settings['current_members'] / settings['max_capacity']
+    
+    if usage_percentage >= threshold:
+        return {
+            'alert': True,
+            'message': f'Campanha {short_code} atingiu {usage_percentage*100:.1f}% de capacidade',
+            'current': settings['current_members'],
+            'max': settings['max_capacity'],
+            'recommendation': 'Considere adicionar um novo grupo'
+        }
+    
+    return {
+        'alert': False,
+        'usage_percentage': usage_percentage * 100
+    }
+
+# Uso
+alert = check_campaign_capacity('ABC123', threshold=0.85)
+if alert['alert']:
+    print(alert['message'])
+```
+
+### Verificar Status Antes de Compartilhar
+
+```javascript
+async function isCampaignActive(shortCode) {
+  try {
+    const response = await fetch(
+      `https://api.example.com/v1/smartlinks?shortCode=${shortCode}`,
+      {
+        headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+      }
+    );
+
+    if (!response.ok) {
+      return { active: false, reason: 'Campaign not found' };
+    }
+
+    const campaign = await response.json();
+
+    // Verificar múltiplas condições
+    const checks = {
+      statusActive: campaign.status === 'active',
+      hasCapacity: campaign.settings.current_members < campaign.settings.max_capacity,
+      hasActiveGroups: campaign.groups.some(g => g.is_active),
+      trackingEnabled: campaign.settings.tracking_enabled
+    };
+
+    const allChecksPass = Object.values(checks).every(v => v);
+
+    return {
+      active: allChecksPass,
+      checks,
+      campaign: {
+        name: campaign.name,
+        shortCode: campaign.short_code
+      }
+    };
+
+  } catch (error) {
+    return { active: false, reason: error.message };
+  }
+}
+
+// Uso
+const status = await isCampaignActive('ABC123');
+if (status.active) {
+  console.log('✅ Campanha pronta para compartilhar');
+} else {
+  console.log('❌ Campanha não disponível:', status.checks);
+}
+```
+
+## Notas Importantes
+
+<Tip>
+  **Caching**: Este endpoint é ideal para caching. Recomendamos cache de 5-10 minutos para reduzir requisições.
+</Tip>
+
+<Note>
+  **Case Sensitive**: O parâmetro `shortCode` é case-sensitive. Use exatamente como foi fornecido na criação da campanha.
+</Note>
+
+<Warning>
+  **URLs Públicas**: O short code é público e pode ser usado em URLs compartilhadas. Não inclua informações sensíveis no nome ou configurações da campanha.
+</Warning>
+
+## Campos Relacionados
+
+Para obter informações mais detalhadas sobre:
+- **Atividades**: Use [GET /smartlinks/campaign/{campaignId}/activities](/api-reference/smartlinks/activities)
+- **Atualizar detalhes**: Use [PUT /smartlinks/{shortCode}/details](/api-reference/smartlinks/update-details)
+
+## Webhooks Relacionados
+
+Configure webhooks para ser notificado quando:
+- `campaign.capacity_reached` - Campanha atingiu 90% da capacidade
+- `campaign.status_changed` - Status da campanha mudou
+- `campaign.group_rotated` - Novo grupo foi ativado na rotação
+
+Veja [Webhooks](/webhooks/overview) para mais detalhes.
