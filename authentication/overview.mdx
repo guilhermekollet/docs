@@ -1,62 +1,277 @@
 ---
-title: 'Visão Geral de Autenticação'
-description: 'Como autenticar suas requisições à API'
+title: 'Autenticação'
+description: 'Como autenticar suas requisições à API usando Bearer Token'
 ---
 
-## Métodos de Autenticação
+## Como Funciona
 
-Nossa API suporta múltiplos métodos de autenticação para atender diferentes casos de uso:
+A autenticação na Monitora API é feita através de **Bearer Tokens (JWT)** obtidos no endpoint de login. 
 
-<CardGroup cols={2}>
-  <Card
-    title="API Keys"
-    icon="key"
-    href="/authentication/api-keys"
-  >
-    Método recomendado para aplicações server-side
-  </Card>
-  <Card
-    title="OAuth 2.0"
-    icon="shield-check"
-    href="/authentication/oauth"
-  >
-    Ideal para aplicações que acessam dados de usuários
-  </Card>
-</CardGroup>
+<Steps>
+  <Step title="Fazer Login">
+    Faça uma requisição POST para `/auth/login` com email e senha
+  </Step>
+  <Step title="Receber Tokens">
+    Você receberá um `access_token` e um `refresh_token`
+  </Step>
+  <Step title="Usar o Access Token">
+    Inclua o `access_token` no header `Authorization` de todas as requisições
+  </Step>
+  <Step title="Renovar quando necessário">
+    Quando o `access_token` expirar, use o `refresh_token` para obter um novo
+  </Step>
+</Steps>
+
+## Método de Autenticação
+
+### Bearer Token (JWT)
+
+Todas as requisições à API (exceto login) devem incluir o token no header:
+
+```bash
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+<Note>
+  O `access_token` tem validade limitada (geralmente 1 hora). Use o endpoint `/auth/refresh` para renovar.
+</Note>
+
+## Exemplo Completo
+
+### 1. Login
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitoragrupo.com/v1/auth/login \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "email": "usuario@exemplo.com",
+    "password": "senhaSegura123"
+  }'
+```
+
+**Resposta:**
+```json
+{
+  "message": "Login realizado com sucesso",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600
+}
+```
+
+### 2. Usar o Token em Requisições
+
+```bash cURL
+curl --request GET \
+  --url https://api.monitoragrupo.com/v1/accounts/usage \
+  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+```
+
+### 3. Renovar Token Expirado
+
+```bash cURL
+curl --request POST \
+  --url https://api.monitoragrupo.com/v1/auth/refresh \
+  --header 'Authorization: Bearer REFRESH_TOKEN_AQUI'
+```
+
+## Implementação em Código
+
+<CodeGroup>
+
+```javascript JavaScript
+class AuthService {
+  constructor() {
+    this.baseUrl = 'https://api.monitoragrupo.com/v1';
+  }
+
+  async login(email, password) {
+    const response = await fetch(`${this.baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+    
+    // Armazenar tokens de forma segura
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    
+    return data;
+  }
+
+  async makeAuthenticatedRequest(endpoint) {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.status === 401) {
+      // Token expirado, renovar
+      await this.refreshToken();
+      // Tentar novamente
+      return this.makeAuthenticatedRequest(endpoint);
+    }
+
+    return response.json();
+  }
+
+  async refreshToken() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    
+    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${refreshToken}`
+      }
+    });
+
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access_token);
+    
+    return data;
+  }
+
+  logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+}
+
+// Uso
+const auth = new AuthService();
+await auth.login('usuario@exemplo.com', 'senha123');
+const data = await auth.makeAuthenticatedRequest('/accounts/usage');
+```
+
+```python Python
+import requests
+from datetime import datetime, timedelta
+
+class AuthService:
+    def __init__(self):
+        self.base_url = 'https://api.monitoragrupo.com/v1'
+        self.access_token = None
+        self.refresh_token = None
+        self.token_expiry = None
+
+    def login(self, email, password):
+        response = requests.post(
+            f'{self.base_url}/auth/login',
+            json={'email': email, 'password': password}
+        )
+        
+        data = response.json()
+        self.access_token = data['access_token']
+        self.refresh_token = data['refresh_token']
+        self.token_expiry = datetime.now() + timedelta(seconds=data['expires_in'])
+        
+        return data
+
+    def get_headers(self):
+        if datetime.now() >= self.token_expiry:
+            self.refresh_access_token()
+        
+        return {'Authorization': f'Bearer {self.access_token}'}
+
+    def refresh_access_token(self):
+        response = requests.post(
+            f'{self.base_url}/auth/refresh',
+            headers={'Authorization': f'Bearer {self.refresh_token}'}
+        )
+        
+        data = response.json()
+        self.access_token = data['access_token']
+        self.token_expiry = datetime.now() + timedelta(seconds=data['expires_in'])
+
+    def make_request(self, endpoint, method='GET', **kwargs):
+        response = requests.request(
+            method,
+            f'{self.base_url}{endpoint}',
+            headers=self.get_headers(),
+            **kwargs
+        )
+        return response.json()
+
+# Uso
+auth = AuthService()
+auth.login('usuario@exemplo.com', 'senha123')
+data = auth.make_request('/accounts/usage')
+```
+
+</CodeGroup>
 
 ## Segurança
 
 <Warning>
-  **Nunca exponha suas credenciais de API publicamente**. Sempre use variáveis de ambiente ou gerenciadores de segredos em produção.
+  **Nunca exponha seus tokens publicamente**. Sempre use armazenamento seguro (localStorage, cookies httpOnly, ou variáveis de ambiente).
 </Warning>
 
 ### Melhores Práticas
 
 <AccordionGroup>
-  <Accordion icon="rotate" title="Rotacione suas chaves regularmente">
-    Recomendamos rotacionar suas chaves de API a cada 90 dias para manter a segurança.
+  <Accordion icon="clock" title="Renove tokens automaticamente">
+    Implemente lógica para renovar o `access_token` automaticamente quando estiver próximo de expirar.
   </Accordion>
 
-  <Accordion icon="users-gear" title="Use chaves diferentes por ambiente">
-    Mantenha chaves separadas para desenvolvimento, staging e produção.
+  <Accordion icon="shield" title="Armazene tokens com segurança">
+    Em aplicações web, use `httpOnly cookies`. Em mobile, use keychain/keystore. Em backend, use variáveis de ambiente.
   </Accordion>
 
-  <Accordion icon="eye-slash" title="Monitore o uso das chaves">
-    Acompanhe o uso de suas chaves no painel de controle e investigue atividades suspeitas.
+  <Accordion icon="eye-slash" title="Não compartilhe tokens">
+    Tokens são pessoais e intransferíveis. Nunca compartilhe em código público ou repositórios.
   </Accordion>
 
-  <Accordion icon="trash" title="Revogue chaves comprometidas imediatamente">
-    Se suspeitar que uma chave foi exposta, revogue-a imediatamente e gere uma nova.
+  <Accordion icon="right-from-bracket" title="Faça logout adequadamente">
+    Sempre remova tokens do armazenamento ao fazer logout e use o endpoint `/auth/logout`.
   </Accordion>
 </AccordionGroup>
 
-## Autenticação em Requisições
+## Tratamento de Erros
 
-Todas as requisições à API devem incluir credenciais de autenticação no header:
+| Código | Descrição | Solução |
+|--------|-----------|---------|
+| `401` | Token inválido ou expirado | Renove o token usando `/auth/refresh` |
+| `403` | Token válido mas sem permissões | Verifique as permissões da conta |
+| `429` | Muitas requisições | Implemente rate limiting e retry com backoff |
 
-```bash
-Authorization: Bearer YOUR_API_KEY
-```
+## Endpoints de Autenticação
+
+<CardGroup cols={2}>
+  <Card
+    title="Login"
+    icon="right-to-bracket"
+    href="/api-reference/auth/login"
+  >
+    POST /auth/login - Obter tokens de acesso
+  </Card>
+  <Card
+    title="Refresh Token"
+    icon="rotate"
+    href="/api-reference/auth/refresh"
+  >
+    POST /auth/refresh - Renovar access token
+  </Card>
+  <Card
+    title="Logout"
+    icon="right-from-bracket"
+    href="/api-reference/auth/logout"
+  >
+    POST /auth/logout - Invalidar tokens
+  </Card>
+  <Card
+    title="Dados do Usuário"
+    icon="user"
+    href="/api-reference/auth/me"
+  >
+    GET /auth/me - Informações do usuário autenticado
+  </Card>
+</CardGroup>
 
 ### Exemplo de Requisição
 

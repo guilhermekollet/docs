@@ -3,8 +3,8 @@
   "theme": "mint",
   "name": "API Documentation",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "https://monitoragrupo.com/monitoralight.svg",
+    "light": "https://monitoragrupo.com/monitoralight.svg"
   },
   "favicon": "/favicon.png",
   "colors": {
@@ -26,10 +26,6 @@
     {
       "name": "API Reference",
       "url": "api-reference"
-    },
-    {
-      "name": "Guides",
-      "url": "guides"
     }
   ],
   "navigation": {
@@ -45,35 +41,7 @@
       {
         "group": "Authentication",
         "pages": [
-          "authentication/overview",
-          "authentication/api-keys",
-          "authentication/oauth"
-        ]
-      },
-      {
-        "group": "Guides",
-        "pages": [
-          {
-            "group": "Getting Started",
-            "pages": [
-              "guides/quickstart",
-              "guides/best-practices",
-              "guides/rate-limits",
-              "guides/code-examples"
-            ]
-          }
-        ]
-      },
-      {
-        "group": "Webhooks",
-        "pages": [
-          "webhooks/overview"
-        ]
-      },
-      {
-        "group": "Errors & Troubleshooting",
-        "pages": [
-          "errors/overview"
+          "authentication/overview"
         ]
       },
       {
