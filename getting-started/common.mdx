@@ -1,4 +1,173 @@
 ---
-title: 'Common'
+title: "Common API"
+description: "A API Common reúne endpoints utilitários e padrões compartilhados entre os módulos do Monitora API, como health check, enums, validações e metadados globais."
 ---
 
+## Autenticação
+
+Alguns endpoints **não exigem autenticação** (ex.: health check).  
+Outros podem exigir JWT, dependendo do uso.
+
+Header (quando aplicável):
+
+```
+Authorization: Bearer <seu_token_jwt>
+```
+
+---
+
+## Endpoints
+
+<AccordionGroup>
+
+  <Accordion title="Health Check" icon="activity">
+    Endpoint público para verificar se a API está online e operacional.
+
+    **Método:** GET
+    **URL:** `/health`
+
+    <RequestExample>
+    ```bash
+    GET /health
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "status": "ok",
+      "service": "monitora-api",
+      "timestamp": "2026-01-10T12:00:00.000Z",
+      "uptime": 86400
+    }
+    ```
+    </ResponseExample>
+
+    <ResponseField name="status" type="string">
+      Status da API (ok / degraded / down).
+    </ResponseField>
+    <ResponseField name="service" type="string">
+      Nome do serviço.
+    </ResponseField>
+    <ResponseField name="timestamp" type="string">
+      Data e hora da verificação.
+    </ResponseField>
+    <ResponseField name="uptime" type="number">
+      Tempo de execução da API em segundos.
+    </ResponseField>
+
+  </Accordion>
+
+  <Accordion title="Listar Enums Globais" icon="list">
+    Retorna enums e valores utilizados em múltiplos módulos da API (status, tipos, categorias).
+
+    **Método:** GET
+    **URL:** `/common/enums`
+
+    <RequestExample>
+    ```bash
+    GET /common/enums
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "campaignStatus": ["active", "paused", "archived"],
+      "creditTransactionType": ["debit", "credit"],
+      "monitorStatus": ["connected", "disconnected", "pending"]
+    }
+    ```
+    </ResponseExample>
+
+    <Note>
+      Ideal para alimentar selects e filtros no frontend.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="Validar Payload Genérico" icon="check-circle">
+    Executa validações genéricas (ex.: formato, duplicidade ou regras comuns).
+
+    **Método:** POST
+    **URL:** `/common/validate`
+
+    <ParamField body="type" type="string" required>
+      Tipo da validação (ex.: shortCode, email, phone).
+    </ParamField>
+
+    <ParamField body="value" type="string" required>
+      Valor a ser validado.
+    </ParamField>
+
+    <RequestExample>
+    ```json
+    {
+      "type": "shortCode",
+      "value": "JAN26"
+    }
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "isValid": true,
+      "normalizedValue": "JAN26"
+    }
+    ```
+    </ResponseExample>
+
+    <ResponseField name="isValid" type="boolean">
+      Indica se o valor é válido.
+    </ResponseField>
+    <ResponseField name="normalizedValue" type="string">
+      Valor normalizado após validação.
+    </ResponseField>
+
+  </Accordion>
+
+  <Accordion title="Obter Metadados da API" icon="info">
+    Retorna informações globais da API e limites configurados.
+
+    **Método:** GET
+    **URL:** `/common/meta`
+
+    <RequestExample>
+    ```bash
+    GET /common/meta
+
+    Authorization: Bearer <token>
+    ```
+    </RequestExample>
+
+    <ResponseExample>
+    ```json
+    {
+      "version": "1.0.0",
+      "environment": "production",
+      "rateLimit": {
+        "requestsPerMinute": 120
+      },
+      "features": {
+        "credits": true,
+        "billing": false
+      }
+    }
+    ```
+    </ResponseExample>
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Erros comuns
+
+- **401 Unauthorized**: token inválido ou ausente.
+- **403 Forbidden**: acesso não permitido.
+- **422 Unprocessable Entity**: erro de validação.
+- **429 Too Many Requests**: rate limit excedido.
