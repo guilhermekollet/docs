@@ -22,7 +22,7 @@ Authorization: Bearer <seu_token_jwt>
   <Accordion title="Criar Conta do Facebook" icon="plus-circle">
     Cria uma nova conta do Facebook vinculada ao usuário autenticado.
 
-    **Método:** POST  
+    **Método:** POST
     **URL:** `/accounts/facebook`
 
     <ParamField body="name" type="string" required>
@@ -57,12 +57,13 @@ Authorization: Bearer <seu_token_jwt>
     }
     ```
     </ResponseExample>
+
   </Accordion>
 
   <Accordion title="Atualizar Conta do Facebook" icon="edit">
     Atualiza os dados de uma conta do Facebook existente.
 
-    **Método:** PATCH  
+    **Método:** PATCH
     **URL:** `/accounts/facebook/{id}`
 
     <ParamField path="id" type="string" required>
@@ -84,12 +85,13 @@ Authorization: Bearer <seu_token_jwt>
     <Note>
       Retorna a conta atualizada.
     </Note>
+
   </Accordion>
 
   <Accordion title="Listar Contas do Facebook" icon="list">
     Lista as contas do Facebook do usuário autenticado com paginação e filtros.
 
-    **Método:** GET  
+    **Método:** GET
     **URL:** `/accounts/facebook`
 
     <ParamField query="page" type="number" default="1">
@@ -122,12 +124,13 @@ Authorization: Bearer <seu_token_jwt>
     }
     ```
     </ResponseExample>
+
   </Accordion>
 
   <Accordion title="Criar Conta de Anúncios (Ad Account)" icon="plus">
     Cria uma nova conta de anúncios vinculada a uma conta do Facebook.
 
-    **Método:** POST  
+    **Método:** POST
     **URL:** `/accounts/adaccounts`
 
     <ParamField body="facebookAccountId" type="string" required>
@@ -151,12 +154,13 @@ Authorization: Bearer <seu_token_jwt>
     }
     ```
     </RequestExample>
+
   </Accordion>
 
   <Accordion title="Listar Contas de Anúncios" icon="list">
     Lista as contas de anúncios com filtros e paginação.
 
-    **Método:** GET  
+    **Método:** GET
     **URL:** `/accounts/adaccounts`
 
     <ParamField query="page" type="number" default="1">
@@ -170,12 +174,13 @@ Authorization: Bearer <seu_token_jwt>
     <ParamField query="facebookAccountId" type="string">
       Filtrar por conta do Facebook.
     </ParamField>
+
   </Accordion>
 
   <Accordion title="Adicionar Conta de Anúncios Diretamente" icon="link">
     Associa uma conta de anúncios existente diretamente a uma conta do Facebook.
 
-    **Método:** POST  
+    **Método:** POST
     **URL:** `/accounts/adaccounts/direct`
 
     <ParamField body="facebookAccountId" type="string" required>
@@ -194,12 +199,13 @@ Authorization: Bearer <seu_token_jwt>
     }
     ```
     </RequestExample>
+
   </Accordion>
 
   <Accordion title="Remover Conta de Anúncios" icon="trash">
     Remove uma conta de anúncios do sistema.
 
-    **Método:** DELETE  
+    **Método:** DELETE
     **URL:** `/accounts/adaccounts/{id}`
 
     <ParamField path="id" type="string" required>
@@ -209,6 +215,7 @@ Authorization: Bearer <seu_token_jwt>
     <Note>
       Retorna **204 No Content** em caso de sucesso.
     </Note>
+
   </Accordion>
 
 </AccordionGroup>
